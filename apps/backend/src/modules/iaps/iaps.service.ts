@@ -6,6 +6,7 @@ import { AddActivityToIapDto } from './dto/add-activity-to-iap.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ActivitiesService } from '../activities/activities.service';
+import { EventBusService } from '../utils/event-bus-service';
 
 @Injectable()
 export class IapsService {
@@ -13,7 +14,10 @@ export class IapsService {
     @InjectModel(Iap.name)
     private iapModel: Model<Iap>,
     private activitiesService: ActivitiesService,
-  ) {}
+    private eventBus: EventBusService,
+  ) {
+    this.setupEvents(this.eventBus);
+  }
 
   async create(createIapDto: CreateIapDto): Promise<Iap> {
     return this.iapModel.create(createIapDto);
@@ -96,5 +100,15 @@ export class IapsService {
 
   async remove(id: string): Promise<Iap> {
     return this.iapModel.findByIdAndDelete({ _id: id }).exec();
+  }
+
+  setupEvents(eventBus: EventBusService): void {
+    eventBus.on('iap.uses.activity', async (activityId: string) => {
+      const iap = await this.iapModel.findOne({
+        activityIds: activityId,
+      });
+
+      return { used: !!iap };
+    });
   }
 }

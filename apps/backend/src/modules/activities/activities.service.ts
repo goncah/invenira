@@ -10,6 +10,7 @@ import { ActivityProvider } from './entities/activity-provider.entity';
 import { UpdateActivityProviderDto } from './dto/update-activity-provider.dto';
 import { ActivityProvidersClient } from './activity-providers.client';
 import { ConfigInterfaceDto } from './dto/config-interface.dto';
+import { EventBusService } from '../utils/event-bus-service';
 
 @Injectable()
 export class ActivitiesService {
@@ -19,6 +20,7 @@ export class ActivitiesService {
     @InjectModel(ActivityProvider.name)
     private readonly activityProviderModel: Model<ActivityProvider>,
     private readonly activityProvidersClient: ActivityProvidersClient,
+    private eventBus: EventBusService,
   ) {}
 
   async createActivity(
@@ -64,6 +66,15 @@ export class ActivitiesService {
   }
 
   async removeActivity(id: string): Promise<Activity> {
+    const used = await this.eventBus.emitAsync(
+      'iap.uses.activity',
+      id,
+    );
+
+    if (used[0].used) {
+      throw new BadRequestException('Activity in use by IAP!');
+    }
+
     return await this.activityModel.findByIdAndDelete({ _id: id }).exec();
   }
 

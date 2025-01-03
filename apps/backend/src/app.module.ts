@@ -8,9 +8,11 @@ import { IapsModule } from './modules/iaps/iaps.module';
 import { ObjectivesModule } from './modules/objectives/objectives.module';
 import { logger } from './invenira.logger';
 import { AuthModule } from './modules/auth/auth.module';
+import { UtilsModule } from './modules/utils/utils.module';
 
 @Module({
   imports: [
+    UtilsModule,
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
