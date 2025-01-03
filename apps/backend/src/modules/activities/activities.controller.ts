@@ -10,14 +10,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
-import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
 import { ApiResponse } from '@nestjs/swagger';
-import { Activity } from './entities/activity.entity';
+import { ActivityEntity } from './entities/activity.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
+import { Activity } from '@invenira/model';
+import { CreateActivityDto } from './dto/create-activity.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activities')
@@ -26,22 +27,22 @@ export class ActivitiesController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Activity,
+    type: ActivityEntity,
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Post()
   async create(
     @AuthorizedUser() user: string,
-    @Body() createActivityDto: CreateActivityDto,
+    @Body() createActivity: CreateActivityDto,
   ): Promise<Activity> {
-    createActivityDto['createdBy'] = user;
-    createActivityDto['updatedBy'] = user;
-    return this.activitiesService.createActivity(createActivityDto);
+    createActivity['createdBy'] = user;
+    createActivity['updatedBy'] = user;
+    return this.activitiesService.createActivity(createActivity);
   }
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: [Activity],
+    type: [ActivityEntity],
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get()
@@ -51,7 +52,7 @@ export class ActivitiesController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Activity,
+    type: ActivityEntity,
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id')
@@ -61,7 +62,7 @@ export class ActivitiesController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Activity,
+    type: ActivityEntity,
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Patch(':id')
@@ -76,7 +77,7 @@ export class ActivitiesController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Activity,
+    type: ActivityEntity,
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Delete(':id')

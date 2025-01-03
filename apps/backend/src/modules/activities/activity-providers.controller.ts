@@ -12,13 +12,14 @@ import {
 import { CreateActivityProviderDto } from './dto/create-activity-provider.dto';
 import { UpdateActivityProviderDto } from './dto/update-activity-provider.dto';
 import { ApiResponse } from '@nestjs/swagger';
-import { ActivityProvider } from './entities/activity-provider.entity';
+import { ActivityProviderEntity } from './entities/activity-provider.entity';
 import { ActivitiesService } from './activities.service';
 import { ConfigInterfaceDto } from './dto/config-interface.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
+import { ActivityProvider } from '@invenira/model';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activity-providers')
@@ -27,7 +28,7 @@ export class ActivityProvidersController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: ActivityProvider,
+    type: ActivityProviderEntity,
   })
   @Roles('app_admin')
   @Post()
@@ -44,7 +45,7 @@ export class ActivityProvidersController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: [ActivityProvider],
+    type: [ActivityProviderEntity],
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get()
@@ -54,7 +55,7 @@ export class ActivityProvidersController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: ActivityProvider,
+    type: ActivityProviderEntity,
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id')
@@ -64,7 +65,7 @@ export class ActivityProvidersController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: ActivityProvider,
+    type: ActivityProviderEntity,
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id/config-interface')
@@ -76,7 +77,7 @@ export class ActivityProvidersController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: ActivityProvider,
+    type: ActivityProviderEntity,
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id/config-params')
@@ -86,7 +87,7 @@ export class ActivityProvidersController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: ActivityProvider,
+    type: ActivityProviderEntity,
   })
   @Roles('app_admin')
   @Patch(':id')
@@ -104,7 +105,7 @@ export class ActivityProvidersController {
 
   @ApiResponse({
     status: HttpStatus.OK,
-    type: ActivityProvider,
+    type: ActivityProviderEntity,
   })
   @Roles('app_admin')
   @Delete(':id')

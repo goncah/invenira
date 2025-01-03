@@ -11,7 +11,7 @@ import ViewIAP from './components/iaps/ViewIAP';
 import EditIAP from './components/iaps/EditIAP';
 import { useAuth } from 'react-oidc-context';
 import { CircularProgress } from '@mui/material';
-import Logout from "./components/Logout";
+import Logout from './components/Logout';
 
 export default function App() {
   const auth = useAuth();

@@ -4,14 +4,14 @@ import { IapsController } from './iaps.controller';
 import { ActivitiesModule } from '../activities/activities.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { logger } from '../../invenira.logger';
-import { Iap, IapSchema } from './entities/iap.entity';
+import { IapEntity, IapSchema } from './entities/iap.entity';
 
 @Module({
   imports: [
     ActivitiesModule,
     MongooseModule.forFeatureAsync([
       {
-        name: Iap.name,
+        name: IapEntity.name,
         useFactory: () => {
           const schema = IapSchema;
 

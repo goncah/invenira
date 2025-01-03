@@ -4,5 +4,8 @@
   "sourceRoot": "apps/frontend/src",
   "projectType": "application",
   "tags": [],
-  "targets": {}
+  "targets": {},
+  "implicitDependencies": [
+    "model"
+  ]
 }

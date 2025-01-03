@@ -5,18 +5,20 @@ import {
   postRequest,
 } from './requests';
 import { api_hostname } from '../constants';
+import {
+  ActivityProvider,
+  ConfigInterface,
+  CreateActivityProvider,
+  UpdateActivityProvider,
+} from '@invenira/model';
 
 export class ActivityProvidersService {
-  async getAll(token: string): Promise<any[]> {
-    return getRequest(api_hostname + '/activity-providers', token).then((r) =>
-      r.json(),
-    );
+  async getAll(token: string): Promise<ActivityProvider[]> {
+    return getRequest(api_hostname + '/activity-providers', token);
   }
 
-  async getOne(id: string, token: string): Promise<any[]> {
-    return getRequest(api_hostname + '/activity-providers/' + id, token).then(
-      (r) => r.json(),
-    );
+  async getOne(id: string, token: string): Promise<ActivityProvider> {
+    return getRequest(api_hostname + '/activity-providers/' + id, token);
   }
 
   async delete(id: string, token: string): Promise<void> {
@@ -24,38 +26,31 @@ export class ActivityProvidersService {
   }
 
   async create(
-    ap: {
-      name: string;
-      url: string;
-    },
+    ap: CreateActivityProvider,
     token: string,
-  ): Promise<void> {
-    return postRequest(api_hostname + '/activity-providers', token, ap).then(
-      null,
-    );
+  ): Promise<ActivityProvider> {
+    return postRequest(api_hostname + '/activity-providers', token, ap);
   }
 
-  async update(id: string, url: { url: string }, token: string): Promise<void> {
-    return patchRequest(
-      api_hostname + '/activity-providers/' + id,
-      token,
-      url,
-    ).then((r) => r.json());
+  async update(
+    id: string,
+    url: UpdateActivityProvider,
+    token: string,
+  ): Promise<ActivityProvider> {
+    return patchRequest(api_hostname + '/activity-providers/' + id, token, url);
   }
 
   async getConfigInterfaceUrl(id: string, token: string): Promise<string> {
-    return getRequest(
+    return getRequest<ConfigInterface>(
       api_hostname + '/activity-providers/' + id + '/config-interface',
       token,
-    )
-      .then((r) => r.json())
-      .then((r) => r.url);
+    ).then((r) => r.url);
   }
 
   async getActivityParams(id: string, token: string): Promise<string[]> {
     return getRequest(
       api_hostname + '/activity-providers/' + id + '/config-params',
       token,
-    ).then((r) => r.json());
+    );
   }
 }

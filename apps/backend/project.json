@@ -50,6 +50,9 @@
         "build"
       ],
       "command": "docker build -f apps/backend/Dockerfile . -t backend"
-    }
+    },
+    "implicitDependencies": [
+      "model"
+    ]
   }
 }

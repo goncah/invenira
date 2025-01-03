@@ -1,7 +1,8 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
+import { CreateActivity } from '@invenira/model';
 
 @ApiSchema({ name: 'CreateActivityRequest' })
-export class CreateActivityDto {
+export class CreateActivityDto implements CreateActivity {
   @ApiProperty()
   name: string;
 

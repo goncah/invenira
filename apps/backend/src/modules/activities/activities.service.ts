@@ -1,24 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { CreateActivityDto } from './dto/create-activity.dto';
 import { UpdateActivityDto } from './dto/update-activity.dto';
-import { Activity } from './entities/activity.entity';
+import { ActivityEntity } from './entities/activity.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BadRequestException } from '../../exceptions/bad.request.exception';
 import { CreateActivityProviderDto } from './dto/create-activity-provider.dto';
-import { ActivityProvider } from './entities/activity-provider.entity';
+import { ActivityProviderEntity } from './entities/activity-provider.entity';
 import { UpdateActivityProviderDto } from './dto/update-activity-provider.dto';
 import { ActivityProvidersClient } from './activity-providers.client';
 import { ConfigInterfaceDto } from './dto/config-interface.dto';
 import { EventBusService } from '../utils/event-bus-service';
+import { Activity, ActivityProvider } from '@invenira/model';
+import { CreateActivityDto } from './dto/create-activity.dto';
 
 @Injectable()
 export class ActivitiesService {
   constructor(
-    @InjectModel(Activity.name)
-    private activityModel: Model<Activity>,
-    @InjectModel(ActivityProvider.name)
-    private readonly activityProviderModel: Model<ActivityProvider>,
+    @InjectModel(ActivityEntity.name)
+    private activityModel: Model<ActivityEntity>,
+    @InjectModel(ActivityProviderEntity.name)
+    private readonly activityProviderModel: Model<ActivityProviderEntity>,
     private readonly activityProvidersClient: ActivityProvidersClient,
     private eventBus: EventBusService,
   ) {}
@@ -49,9 +50,7 @@ export class ActivitiesService {
     id: string,
     updateActivityDto: UpdateActivityDto,
   ): Promise<Activity> {
-    const par = await this.getActivityParameters(
-      updateActivityDto.activityProviderId,
-    );
+    const par = await this.getActivityParameters(id);
 
     if (!par.every((e) => updateActivityDto.parameters.has(e))) {
       throw new BadRequestException('Missing parameters');
@@ -66,10 +65,7 @@ export class ActivitiesService {
   }
 
   async removeActivity(id: string): Promise<Activity> {
-    const used = await this.eventBus.emitAsync(
-      'iap.uses.activity',
-      id,
-    );
+    const used = await this.eventBus.emitAsync('iap.uses.activity', id);
 
     if (used[0].used) {
       throw new BadRequestException('Activity in use by IAP!');

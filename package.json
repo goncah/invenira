@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "backend:dev": "nx run backend:serve",
-    "backend:build": "ncc build apps/backend/src/main.ts -m -C -o dist/apps/backend --target es2024 && mv dist/apps/backend/index.js dist/apps/backend/main.js",
+    "backend:build": "nx build backend && ncc build dist/apps/backend/main.js -m -C -o dist/apps/backend --target es2024 && mv dist/apps/backend/index.js dist/apps/backend/main.js",
     "frontend:dev": "nx run frontend:serve",
     "frontend:build": "nx run frontend:build"
   },
@@ -72,7 +72,7 @@
     "@swc/helpers": "~0.5.11",
     "@testing-library/react": "15.0.6",
     "@types/express": "^5.0.0",
-    "@types/jest": "^29.5.2",
+    "@types/jest": "^29.5.12",
     "@types/node": "^22.10.2",
     "@types/passport-jwt": "^4.0.1",
     "@types/react": "^18.3.12",
@@ -94,7 +94,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.11.0",
-    "jest": "^29.5.0",
+    "jest": "^29.7.0",
     "jest-environment-node": "^29.7.0",
     "jsdom": "~22.1.0",
     "nx": "20.3.0",

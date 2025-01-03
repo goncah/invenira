@@ -1,11 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument, ObjectId } from 'mongoose';
+import mongoose, { Document, HydratedDocument } from 'mongoose';
+import { Iap } from '@invenira/model';
 
-export type IapDocument = HydratedDocument<Iap>;
+export type IapDocument = HydratedDocument<IapEntity>;
 
 @Schema({ collection: 'iaps', timestamps: true })
-export class Iap {
-  _id: ObjectId;
+export class IapEntity extends Document implements Iap {
+  _id: string;
 
   @Prop({ required: true, unique: true })
   name: string;
@@ -19,7 +20,7 @@ export class Iap {
     type: [mongoose.Schema.Types.ObjectId],
     ref: 'Activity',
   })
-  activityIds: ObjectId[];
+  activityIds: string[];
 
   @Prop({ required: true, default: false })
   isDeployed: boolean;
@@ -38,4 +39,4 @@ export class Iap {
   updatedBy: string;
 }
 
-export const IapSchema = SchemaFactory.createForClass(Iap);
+export const IapSchema = SchemaFactory.createForClass(IapEntity);

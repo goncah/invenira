@@ -22,6 +22,7 @@ import {
   TableSortLabel,
 } from '@mui/material';
 import { useAuth } from 'react-oidc-context';
+import { ActivityProvider, ActivityProviderKey } from '@invenira/model';
 
 const style = {
   position: 'absolute',
@@ -41,7 +42,7 @@ export default function ActivityProvidersTable() {
   }, []);
 
   const auth = useAuth();
-  const [apList, setAplist] = useState([] as any[]);
+  const [apList, setAplist] = useState<ActivityProvider[]>([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [formData, setFormData] = useState({ name: '', url: '' });
@@ -53,7 +54,7 @@ export default function ActivityProvidersTable() {
     name: string;
   } | null>(null);
   const [filter, setFilter] = useState('');
-  const [orderBy, setOrderBy] = useState<keyof any>('name');
+  const [orderBy, setOrderBy] = useState<ActivityProviderKey>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   const token = () => {
@@ -142,7 +143,7 @@ export default function ActivityProvidersTable() {
   const handleSort = (column: keyof any) => {
     const isAsc = orderBy === column && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(column);
+    setOrderBy(column as ActivityProviderKey);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {

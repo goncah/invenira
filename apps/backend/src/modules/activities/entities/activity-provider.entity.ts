@@ -1,10 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { Document, HydratedDocument } from 'mongoose';
+import { ActivityProvider } from '@invenira/model';
 
-export type ActivityProviderDocument = HydratedDocument<ActivityProvider>;
+export type ActivityProviderDocument = HydratedDocument<ActivityProviderEntity>;
 
 @Schema({ collection: 'activity_providers', timestamps: true })
-export class ActivityProvider {
+export class ActivityProviderEntity
+  extends Document
+  implements ActivityProvider
+{
   _id: string;
 
   @Prop({ required: true, unique: true })
@@ -24,5 +28,6 @@ export class ActivityProvider {
   updatedBy: string;
 }
 
-export const ActivityProviderSchema =
-  SchemaFactory.createForClass(ActivityProvider);
+export const ActivityProviderSchema = SchemaFactory.createForClass(
+  ActivityProviderEntity,
+);

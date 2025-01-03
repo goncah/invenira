@@ -1,18 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateIapDto } from './dto/create-iap.dto';
 import { UpdateIapDto } from './dto/update-iap.dto';
-import { Iap } from './entities/iap.entity';
+import { IapEntity } from './entities/iap.entity';
 import { AddActivityToIapDto } from './dto/add-activity-to-iap.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ActivitiesService } from '../activities/activities.service';
 import { EventBusService } from '../utils/event-bus-service';
+import { Iap } from '@invenira/model';
 
 @Injectable()
 export class IapsService {
   constructor(
-    @InjectModel(Iap.name)
-    private iapModel: Model<Iap>,
+    @InjectModel(IapEntity.name)
+    private iapModel: Model<IapEntity>,
     private activitiesService: ActivitiesService,
     private eventBus: EventBusService,
   ) {

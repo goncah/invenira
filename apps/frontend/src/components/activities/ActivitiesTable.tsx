@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -12,18 +12,12 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import { ActivityProvidersService } from '../../services/activity-providers.service';
-import { ActivitiesService } from '../../services/activities.service';
+import {ActivityProvidersService} from '../../services/activity-providers.service';
+import {ActivitiesService} from '../../services/activities.service';
 import MenuItem from '@mui/material/MenuItem';
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  TableSortLabel,
-} from '@mui/material';
-import { useAuth } from 'react-oidc-context';
+import {Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TableSortLabel,} from '@mui/material';
+import {useAuth} from 'react-oidc-context';
+import {ActivityProvider, CreateActivity, EnrichedActivity, EnrichedActivityKey,} from '@invenira/model';
 
 const style = {
   position: 'absolute',
@@ -59,8 +53,8 @@ export default function ActivitiesTable() {
   }, []);
 
   const auth = useAuth();
-  const [apList, setAplist] = useState([] as any[]);
-  const [activityList, setActivityList] = useState([] as any[]);
+  const [apList, setAplist] = useState<ActivityProvider[]>([]);
+  const [activityList, setActivityList] = useState<EnrichedActivity[]>([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -69,35 +63,38 @@ export default function ActivitiesTable() {
   });
   const [iframeVisible, setIframeVisible] = useState(false);
   const [iframeUrl, setIframeUrl] = useState('');
-  const [error, setError] = useState({ open: false, message: '' });
+  const [error, setError] = useState({open: false, message: ''});
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
   const [filter, setFilter] = useState('');
-  const [orderBy, setOrderBy] = useState<keyof any>('name');
+  const [orderBy, setOrderBy] = useState<EnrichedActivityKey>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   const token = () => {
     const token = auth?.user?.access_token;
-    return token!;
+    return token || '';
   };
 
   const fetchAndMap = () => {
-    const token = auth?.user?.access_token;
+    const token = auth?.user?.access_token || '';
     apService
-      .getAll(token!)
+      .getAll(token)
       .then((aps) => {
         setAplist(aps);
         return aps;
       })
       .then(async (aps) => {
-        const activities = await activityService.getAll(token!);
+        const activities = await activityService.getAll(token);
         setActivityList(
           activities.map((a) => {
-            a['ap'] = aps.find((ap) => ap._id === a.activityProviderId).name;
-            return a;
+            // eslint-disable-next-line
+            (a as any).ap = aps.find(
+              (ap) => ap._id === a.activityProviderId,
+            )?.name;
+            return a as EnrichedActivity;
           }),
         );
       })
@@ -111,7 +108,7 @@ export default function ActivitiesTable() {
   ]);
 
   const handleError = (message: string) => {
-    setError({ open: true, message });
+    setError({open: true, message});
   };
 
   const handleDelete = () => {
@@ -124,7 +121,7 @@ export default function ActivitiesTable() {
   };
 
   const openDeleteConfirmation = (id: string, name: string) => {
-    setDeleteTarget({ id, name });
+    setDeleteTarget({id, name});
     setConfirmDelete(true);
   };
 
@@ -137,7 +134,7 @@ export default function ActivitiesTable() {
 
   const handleCloseAdd = () => {
     setOpenAdd(false);
-    setFormData({ name: '', activityProviderId: '', parameters: {} });
+    setFormData({name: '', activityProviderId: '', parameters: {}});
     setIframeVisible(false);
   };
 
@@ -148,8 +145,8 @@ export default function ActivitiesTable() {
         .then((url) => {
           setIframeUrl(
             window.location.origin +
-              '/config-interface?interfaceUrl=' +
-              encodeURIComponent(url),
+            '/config-interface?interfaceUrl=' +
+            encodeURIComponent(url),
           );
           setIframeVisible(true);
         })
@@ -176,31 +173,34 @@ export default function ActivitiesTable() {
             throw new Error(`Missing parameter ${param}`);
           }
 
-          parameters = { ...parameters, [param]: val.value };
+          parameters = {...parameters, [param]: val.value};
         }
 
         return parameters;
       })
       .then(async (parameters) => {
-        const activity = { ...formData, parameters: parameters };
+        const activity = {
+          ...formData,
+          parameters: parameters,
+        } as CreateActivity;
         await activityService.create(activity, token());
         fetchAndMap();
-        setFormData({ name: '', activityProviderId: '', parameters: {} });
+        setFormData({name: '', activityProviderId: '', parameters: {}});
         handleCloseAdd();
       })
-      .catch((e: any) =>
+      .catch((e: Error) =>
         handleError(`Failed to add the activity: ${e.message}`),
       );
   };
 
   const handleErrorClose = () => {
-    setError({ open: false, message: '' });
+    setError({open: false, message: ''});
   };
 
   const isNextDisabled =
     !formData.name.trim() || !formData.activityProviderId.trim();
 
-  const handleSort = (column: keyof any) => {
+  const handleSort = (column: EnrichedActivityKey) => {
     const isAsc = orderBy === column && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(column);
@@ -213,7 +213,7 @@ export default function ActivitiesTable() {
   const filteredData = activityList.filter(
     (row) =>
       row.name.toLowerCase().includes(filter) ||
-      row.ap.toLowerCase().includes(filter) ||
+      row.ap?.toLowerCase().includes(filter) ||
       new Date(row.createdAt)
         .toLocaleString('pt-pt')
         .toLowerCase()
@@ -244,7 +244,7 @@ export default function ActivitiesTable() {
         placeholder="Search by any field"
       />
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <Table sx={{minWidth: 650}} aria-label="simple table">
           <TableHead>
             <TableRow>
               <TableCell>
@@ -308,7 +308,7 @@ export default function ActivitiesTable() {
             {sortedData.map((row) => (
               <TableRow
                 key={row._id}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                sx={{'&:last-child td, &:last-child th': {border: 0}}}
               >
                 <TableCell>{row.name}</TableCell>
                 <TableCell>{row.ap}</TableCell>
@@ -325,7 +325,7 @@ export default function ActivitiesTable() {
                     variant="outlined"
                     color="secondary"
                     onClick={() => openDeleteConfirmation(row._id, row.name)}
-                    sx={{ marginLeft: 1 }}
+                    sx={{marginLeft: 1}}
                   >
                     Delete
                   </Button>
@@ -338,7 +338,7 @@ export default function ActivitiesTable() {
       <Button
         variant="contained"
         color="primary"
-        sx={{ marginTop: 2, float: 'right' }}
+        sx={{marginTop: 2, float: 'right'}}
         onClick={handleOpenAdd}
       >
         Add
@@ -361,7 +361,7 @@ export default function ActivitiesTable() {
                 name="name"
                 value={formData.name}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({...formData, name: e.target.value})
                 }
               />
               <TextField
@@ -389,7 +389,7 @@ export default function ActivitiesTable() {
                 color="primary"
                 onClick={handleNext}
                 disabled={isNextDisabled}
-                style={{ marginTop: 16 }}
+                style={{marginTop: 16}}
               >
                 Next
               </Button>
@@ -397,7 +397,7 @@ export default function ActivitiesTable() {
                 variant="contained"
                 color="error"
                 onClick={handleCloseAdd}
-                style={{ marginTop: 16, marginLeft: 5 }}
+                style={{marginTop: 16, marginLeft: 5}}
               >
                 Cancel
               </Button>
@@ -420,7 +420,7 @@ export default function ActivitiesTable() {
                 variant="contained"
                 color="primary"
                 onClick={handleAdd}
-                style={{ marginTop: 16 }}
+                style={{marginTop: 16}}
               >
                 Save
               </Button>
@@ -428,7 +428,7 @@ export default function ActivitiesTable() {
                 variant="contained"
                 color="error"
                 onClick={handleCloseAdd}
-                style={{ marginTop: 16, marginLeft: 5 }}
+                style={{marginTop: 16, marginLeft: 5}}
               >
                 Cancel
               </Button>
@@ -463,7 +463,7 @@ export default function ActivitiesTable() {
         <Alert
           onClose={handleErrorClose}
           severity="error"
-          sx={{ width: '100%' }}
+          sx={{width: '100%'}}
         >
           {error.message}
         </Alert>

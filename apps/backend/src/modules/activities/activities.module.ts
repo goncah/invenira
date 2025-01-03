@@ -2,12 +2,12 @@ import { Module } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { ActivitiesController } from './activities.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Activity, ActivitySchema } from './entities/activity.entity';
+import { ActivityEntity, ActivitySchema } from './entities/activity.entity';
 import { logger } from '../../invenira.logger';
 import { ActivityProvidersController } from './activity-providers.controller';
 import { ActivityProvidersClient } from './activity-providers.client';
 import {
-  ActivityProvider,
+  ActivityProviderEntity,
   ActivityProviderSchema,
 } from './entities/activity-provider.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -25,7 +25,7 @@ import { HttpModule } from '@nestjs/axios';
     }),
     MongooseModule.forFeatureAsync([
       {
-        name: Activity.name,
+        name: ActivityEntity.name,
         useFactory: () => {
           const schema = ActivitySchema;
 
@@ -42,7 +42,7 @@ import { HttpModule } from '@nestjs/axios';
     ]),
     MongooseModule.forFeatureAsync([
       {
-        name: ActivityProvider.name,
+        name: ActivityProviderEntity.name,
         useFactory: () => {
           const schema = ActivityProviderSchema;
 

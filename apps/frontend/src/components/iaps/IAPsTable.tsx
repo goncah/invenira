@@ -19,9 +19,11 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle, TableSortLabel,
+  DialogTitle,
+  TableSortLabel,
 } from '@mui/material';
 import { useAuth } from 'react-oidc-context';
+import { Iap, IapKey } from '@invenira/model';
 
 const style = {
   position: 'absolute',
@@ -43,7 +45,7 @@ export default function IAPsTable() {
   }, []);
 
   const auth = useAuth();
-  const [iapList, setIapList] = useState([] as any[]);
+  const [iapList, setIapList] = useState<Iap[]>([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -54,7 +56,7 @@ export default function IAPsTable() {
     name: string;
   } | null>(null);
   const [filter, setFilter] = useState('');
-  const [orderBy, setOrderBy] = useState<keyof any>('name');
+  const [orderBy, setOrderBy] = useState<IapKey>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
@@ -153,7 +155,7 @@ export default function IAPsTable() {
   const handleSort = (column: keyof any) => {
     const isAsc = orderBy === column && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(column);
+    setOrderBy(column as IapKey);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {

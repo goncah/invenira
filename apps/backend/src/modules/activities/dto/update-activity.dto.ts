@@ -1,9 +1,8 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateActivityDto } from './create-activity.dto';
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
+import { UpdateActivity } from '@invenira/model';
 
 @ApiSchema({ name: 'UpdateActivityRequest' })
-export class UpdateActivityDto extends PartialType(CreateActivityDto) {
+export class UpdateActivityDto implements UpdateActivity {
   @ApiProperty()
   parameters: Map<string, any>;
 }

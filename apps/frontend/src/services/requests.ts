@@ -1,7 +1,4 @@
-export async function getRequest(
-  url: string,
-  token: string,
-): Promise<Response> {
+export async function getRequest<T>(url: string, token: string): Promise<T> {
   const res = await fetch(url, {
     method: 'GET',
     headers: {
@@ -10,17 +7,17 @@ export async function getRequest(
     },
   });
   if (res.ok) {
-    return res;
+    return res.json();
   } else {
     throw new Error(res.statusText);
   }
 }
 
-export async function postRequest(
+export async function postRequest<T>(
   url: string,
   token: string,
   body: any,
-): Promise<Response> {
+): Promise<T> {
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -30,17 +27,17 @@ export async function postRequest(
     body: JSON.stringify(body),
   });
   if (res.ok) {
-    return res;
+    return res.json();
   } else {
     throw new Error(res.statusText);
   }
 }
 
-export async function patchRequest(
+export async function patchRequest<T>(
   url: string,
   token: string,
   body: any,
-): Promise<Response> {
+): Promise<T> {
   const res = await fetch(url, {
     method: 'PATCH',
     headers: {
@@ -50,7 +47,7 @@ export async function patchRequest(
     body: JSON.stringify(body),
   });
   if (res.ok) {
-    return res;
+    return res.json();
   } else {
     throw new Error(res.statusText);
   }

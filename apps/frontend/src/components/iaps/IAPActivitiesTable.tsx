@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -25,6 +24,7 @@ import {
 import Typography from '@mui/material/Typography';
 import { IAPsService } from '../../services/iaps.service';
 import { useAuth } from 'react-oidc-context';
+import { Activity, Iap } from '@invenira/model';
 
 const style = {
   position: 'absolute',
@@ -56,13 +56,13 @@ export default function IAPActivitiesTable({
   }, []);
 
   const auth = useAuth();
-  const [activityList, setActivityList] = React.useState([] as any[]);
-  const [iapActivityList, setIapActivityList] = React.useState([] as any[]);
-  const [openAdd, setOpenAdd] = React.useState(false);
-  const [activityId, setActivityId] = React.useState<string>('');
-  const [error, setError] = React.useState({ open: false, message: '' });
-  const [confirmRemove, setConfirmRemove] = React.useState(false);
-  const [removeTarget, setRemoveTarget] = React.useState<{
+  const [activityList, setActivityList] = useState<Activity[]>([]);
+  const [iapActivityList, setIapActivityList] = useState<Iap[]>([]);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [activityId, setActivityId] = useState<string>('');
+  const [error, setError] = useState({ open: false, message: '' });
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);

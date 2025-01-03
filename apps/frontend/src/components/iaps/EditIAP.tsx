@@ -6,15 +6,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import IAPActivitiesTable from './IAPActivitiesTable';
 import { useAuth } from 'react-oidc-context';
-
-interface Iap {
-  _id: string;
-  name: string;
-  description: string;
-  activityIds: string[];
-  isDeployed: boolean;
-  deployUrls: Map<string, string>;
-}
+import { Iap } from '@invenira/model';
 
 export default function EditIAP() {
   const navigate = useNavigate();
