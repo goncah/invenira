@@ -1,0 +1,237 @@
+openapi: 3.0.3
+info:
+  title: Inven!RA Activity Provider Interface - OpenAPI 3.0
+  description: |-
+    This is the Inven!RA Activity Provider (AP) Interface that AP implementations must adhere to be used by Inven!RA implementations.
+  contact:
+    email: email@hugogoncalves.pt
+  license:
+    name: MIT
+    url: https://opensource.org/license/MIT
+  version: 0.0.1
+tags:
+  - name: Activity Configuration
+    description: Endpoints for activity configuration
+  - name: Analytics
+    description: Endpoints for analytics collection
+  - name: Activity Deployment
+    description: Endpoints for activity deployment
+
+paths:
+  /configuration/parameters:
+    get:
+      operationId: Configuration Parameters
+      tags:
+        - Activity Configuration
+      summary: Get the AP Activity Configuration Parameters
+      responses:
+        '200':
+          description: |-
+            A list of HTML field names that Inven!RA can harvest during Activity Configuration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigParametersResponse'
+
+  /configuration/interface:
+    get:
+      operationId: Configuration Interface
+      tags:
+        - Activity Configuration
+      summary: Get the AP Activity Configuration Interface URL
+      responses:
+        '200':
+          description: |-
+            The Activity Configuration Interface URL that Inven!RA will use do display the Configuration Interface to the Activity Creator.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigInterfaceResponse'
+
+  /analytics/contract:
+    get:
+      operationId: Analytics Contract
+      tags:
+        - Analytics
+      summary: Get the AP provided analytics contract
+      responses:
+        '200':
+          description: |-
+            Get a set of qualitative and quantitative metrics this AP provides for each activity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsContractResponse'
+
+  /analytics/{id}:
+    get:
+      operationId: Provide Analytics
+      tags:
+        - Analytics
+      summary: Get the AP provided analytics for the given activity Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: |-
+            Get a set of qualitative and quantitative metrics this AP provides for the given activity id per student.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+        '404':
+          description: Activity ID not found
+
+  /activity/{id}:
+    post:
+      operationId: Deploy
+      tags:
+        - Activity Deployment
+      summary: Deploy the given activity id.
+      description: |-
+        The AP should prepare itself to start collecting metrics for this activity id.
+      parameters:
+        - name: id
+          description: Activity id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeployActivityRequest"
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: When there are missing activity parameters in the request body.
+
+  /activity/{id}/{studentId}:
+    post:
+      operationId: Provide Activity
+      tags:
+        - Activity Deployment
+      summary: Start collecting metrics for the provided activity id and student id. Return the Activity URL.
+      description: |-
+        The AP should start collecting metrics for this activity id and student id combination. It should also return the deployUrl that will be forwarded by the Inven!RA platform to the student.
+      parameters:
+        - name: id
+          description: Activity id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: studentId
+          description: Inven!RA Student Id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProvideActivityReply"
+        '404':
+          description: Activity ID not found
+components:
+  schemas:
+    ConfigParametersResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            example: instructions
+          type:
+            type: string
+            example: text/plain
+
+    ConfigInterfaceResponse:
+      type: object
+      properties:
+        interfaceUrl:
+          type: string
+
+    Metric:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+
+    MetricWithValue:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        value:
+          type: object
+
+    QualitativeAnalytics:
+      type: array
+      items:
+        $ref: '#/components/schemas/Metric'
+
+    QualitativeAnalyticsWithValue:
+      type: array
+      items:
+        $ref: '#/components/schemas/MetricWithValue'
+
+    QuantitativeAnalytics:
+      type: array
+      items:
+        $ref: '#/components/schemas/Metric'
+
+    QuantitativeAnalyticsWithValue:
+      type: array
+      items:
+        $ref: '#/components/schemas/MetricWithValue'
+
+    AnalyticsContractResponse:
+      type: object
+      properties:
+        qualAnalytics:
+          $ref: '#/components/schemas/QualitativeAnalytics'
+        quantAnalytics:
+          $ref: '#/components/schemas/QuantitativeAnalytics'
+
+    StudentActivityAnalytics:
+      type: object
+      properties:
+        inveniraStudentId:
+          type: string
+        qualAnalytics:
+          $ref: '#/components/schemas/QualitativeAnalyticsWithValue'
+        quantAnalytics:
+          $ref: '#/components/schemas/QuantitativeAnalyticsWithValue'
+
+    AnalyticsResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/StudentActivityAnalytics'
+
+    DeployActivityRequest:
+      type: object
+      properties:
+        parameters:
+          type: object
+
+    ProvideActivityReply:
+      type: object
+      properties:
+        activityUrl:
+          type: string
