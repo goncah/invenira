@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -20,7 +19,7 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
+  DialogTitle, TableSortLabel,
 } from '@mui/material';
 import { useAuth } from 'react-oidc-context';
 
@@ -44,16 +43,19 @@ export default function IAPsTable() {
   }, []);
 
   const auth = useAuth();
-  const [iapList, setIapList] = React.useState([] as any[]);
-  const [openAdd, setOpenAdd] = React.useState(false);
-  const [name, setName] = React.useState('');
-  const [description, setDescription] = React.useState('');
-  const [error, setError] = React.useState({ open: false, message: '' });
-  const [confirmDelete, setConfirmDelete] = React.useState(false);
-  const [deleteTarget, setDeleteTarget] = React.useState<{
+  const [iapList, setIapList] = useState([] as any[]);
+  const [openAdd, setOpenAdd] = useState(false);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState({ open: false, message: '' });
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
+  const [filter, setFilter] = useState('');
+  const [orderBy, setOrderBy] = useState<keyof any>('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const token = auth?.user?.access_token;
@@ -148,23 +150,112 @@ export default function IAPsTable() {
 
   const isAddDisabled = !name.trim() || !description.trim();
 
+  const handleSort = (column: keyof any) => {
+    const isAsc = orderBy === column && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(column);
+  };
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilter(e.target.value.toLowerCase());
+  };
+
+  const filteredData = iapList.filter(
+    (row) =>
+      row.name.toLowerCase().includes(filter) ||
+      (row.isDeployed ? 'Yes' : 'No').toLowerCase().includes(filter) ||
+      new Date(row.createdAt)
+        .toLocaleString('pt-pt')
+        .toLowerCase()
+        .includes(filter) ||
+      row.createdBy.toLowerCase().includes(filter) ||
+      new Date(row.updatedAt)
+        .toLocaleString('pt-pt')
+        .toLowerCase()
+        .includes(filter) ||
+      row.updatedBy.toLowerCase().includes(filter),
+  );
+
+  const sortedData = filteredData.sort((a, b) => {
+    const isAsc = order === 'asc';
+    if (a[orderBy] < b[orderBy]) return isAsc ? -1 : 1;
+    if (a[orderBy] > b[orderBy]) return isAsc ? 1 : -1;
+    return 0;
+  });
+
   return (
     <>
+      <TextField
+        label="Filter"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        onChange={handleFilterChange}
+        placeholder="Search by any field"
+      />
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Deployed</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Created By</TableCell>
-              <TableCell>Updated At</TableCell>
-              <TableCell>Updated By</TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'name'}
+                  direction={order}
+                  onClick={() => handleSort('name')}
+                >
+                  Name
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'isDeployed'}
+                  direction={order}
+                  onClick={() => handleSort('isDeployed')}
+                >
+                  Deployed
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'createdAt'}
+                  direction={order}
+                  onClick={() => handleSort('createdAt')}
+                >
+                  Created At
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'createdBy'}
+                  direction={order}
+                  onClick={() => handleSort('createdBy')}
+                >
+                  Created By
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'updatedAt'}
+                  direction={order}
+                  onClick={() => handleSort('updatedAt')}
+                >
+                  Updated At
+                </TableSortLabel>
+              </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'updatedBy'}
+                  direction={order}
+                  onClick={() => handleSort('updatedBy')}
+                >
+                  Updated By
+                </TableSortLabel>
+              </TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {iapList.map((row) => (
+            {sortedData.map((row) => (
               <TableRow
                 key={row._id}
                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
