@@ -14,6 +14,7 @@ const oAuthConfig = {
   client_id: clientId,
   client_secret: clientSecret,
   redirect_uri: redirectUri,
+  post_logout_redirect_uri: redirectUri + '/logout',
   response_type: 'code',
   scope: 'email openid phone profile roles',
 };
