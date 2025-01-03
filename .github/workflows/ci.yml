@@ -39,7 +39,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Backend Metadata
-        id: meta
         uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/goncah/invenira-backend
@@ -55,7 +54,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Extract Frontend Metadata
-        id: meta
         uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/goncah/invenira-frontend
