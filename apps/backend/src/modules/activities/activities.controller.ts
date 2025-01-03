@@ -36,7 +36,7 @@ export class ActivitiesController {
   ): Promise<Activity> {
     createActivityDto['createdBy'] = user;
     createActivityDto['updatedBy'] = user;
-    return await this.activitiesService.createActivity(createActivityDto);
+    return this.activitiesService.createActivity(createActivityDto);
   }
 
   @ApiResponse({
@@ -46,7 +46,7 @@ export class ActivitiesController {
   @Roles(...INSTRUCTOR_ROLES)
   @Get()
   async findAll(): Promise<Activity[]> {
-    return await this.activitiesService.findAllActivities();
+    return this.activitiesService.findAllActivities();
   }
 
   @ApiResponse({
@@ -56,7 +56,7 @@ export class ActivitiesController {
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Activity> {
-    return await this.activitiesService.findOneActivity(id);
+    return this.activitiesService.findOneActivity(id);
   }
 
   @ApiResponse({
@@ -71,7 +71,7 @@ export class ActivitiesController {
     @Body() updateActivityDto: UpdateActivityDto,
   ): Promise<Activity> {
     updateActivityDto['updatedBy'] = user;
-    return await this.activitiesService.updateActivity(id, updateActivityDto);
+    return this.activitiesService.updateActivity(id, updateActivityDto);
   }
 
   @ApiResponse({
@@ -81,6 +81,6 @@ export class ActivitiesController {
   @Roles(...INSTRUCTOR_ROLES)
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Activity> {
-    return await this.activitiesService.removeActivity(id);
+    return this.activitiesService.removeActivity(id);
   }
 }

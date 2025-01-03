@@ -18,7 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       !('azp' in payload) ||
       !('preferred_username' in payload) ||
       !('realm_access' in payload) ||
-      !('roles' in payload?.realm_access) ||
+      !('roles' in payload.realm_access) ||
       !(
         Object.prototype.toString.call(payload?.realm_access?.roles) ===
         '[object Array]'

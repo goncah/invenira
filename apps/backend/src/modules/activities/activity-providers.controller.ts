@@ -108,7 +108,7 @@ export class ActivityProvidersController {
   })
   @Roles('app_admin')
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<ActivityProvider> {
+  async remove(@Param('id') id: string): Promise<void> {
     return this.activitiesService.removeActivityProvider(id);
   }
 }

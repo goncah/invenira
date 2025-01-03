@@ -4,7 +4,8 @@ import { AxiosInstance } from 'axios';
 import { Injectable } from '@nestjs/common';
 import {
   httpPathConfigInterface,
-  httpPathConfigPar, httpPathDeployActivity,
+  httpPathConfigPar,
+  httpPathDeployActivity,
 } from '../../config.defaults';
 
 @Injectable()
@@ -66,18 +67,15 @@ export class ActivityProvidersClient {
   }
 
   async getActivityParameters(baseUrl: string): Promise<string[]> {
-    return new Promise(async (resolve, reject) => {
-      this.axios
-        .get<Record<string, string>[]>(baseUrl + this.pathConfigPar)
-        .then((response) => {
-          if (response.status === 200) {
-            resolve(response.data.map((r) => r.name));
-          } else {
-            reject(response.statusText);
-          }
-        })
-        .catch((e) => reject(e));
-    });
+    return this.axios
+      .get<Record<string, string>[]>(baseUrl + this.pathConfigPar)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data.map((r) => r.name);
+        } else {
+          throw new Error(response.statusText);
+        }
+      });
   }
 
   async getConfigInterface(baseUrl: string): Promise<string> {
@@ -88,19 +86,16 @@ export class ActivityProvidersClient {
   }
 
   async deployActivity(baseUrl: string, activityId: string): Promise<string> {
-    return new Promise(async (resolve, reject) => {
-      this.axios
-        .get<Record<string, any>>(
-          baseUrl + this.pathDeployActivity + '/' + activityId,
-        )
-        .then((response) => {
-          if (response.status === 200) {
-            resolve(response.data.deployURL);
-          } else {
-            reject(response.statusText);
-          }
-        })
-        .catch((e) => reject(e));
-    });
+    return this.axios
+      .get<
+        Record<string, any>
+      >(baseUrl + this.pathDeployActivity + '/' + activityId)
+      .then((response) => {
+        if (response.status === 200) {
+          return response.data.deployURL;
+        } else {
+          throw new Error(response.statusText);
+        }
+      });
   }
 }

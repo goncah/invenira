@@ -12,18 +12,18 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    return await this.userModel.create(createUserDto);
+    return this.userModel.create(createUserDto);
   }
 
   async findAll(): Promise<User[]> {
-    return await this.userModel.find().exec();
+    return this.userModel.find().exec();
   }
 
   async findOne(id: string): Promise<User> {
-    return await this.userModel.findOne({ _id: id }).exec();
+    return this.userModel.findOne({ _id: id }).exec();
   }
 
   async remove(id: string): Promise<User> {
-    return await this.userModel.findByIdAndDelete({ _id: id }).exec();
+    return this.userModel.findByIdAndDelete({ _id: id }).exec();
   }
 }

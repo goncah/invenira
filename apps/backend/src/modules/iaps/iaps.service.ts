@@ -16,14 +16,14 @@ export class IapsService {
   ) {}
 
   async create(createIapDto: CreateIapDto): Promise<Iap> {
-    return await this.iapModel.create(createIapDto);
+    return this.iapModel.create(createIapDto);
   }
 
   async addActivity(
     id: string,
     addActivityToIapDto: AddActivityToIapDto,
   ): Promise<Iap> {
-    return await this.iapModel
+    return this.iapModel
       .findOneAndUpdate(
         { _id: id },
         {
@@ -34,7 +34,7 @@ export class IapsService {
   }
 
   async removeActivity(id: string, activityId: string): Promise<Iap> {
-    return await this.iapModel
+    return this.iapModel
       .findOneAndUpdate(
         { _id: id },
         {
@@ -51,41 +51,42 @@ export class IapsService {
       throw new NotFoundException(`IAP with Id ${id} not found`);
     }
 
-    return new Promise(async (resolve, reject) => {
-      const session = await this.iapModel.startSession();
-      session.startTransaction();
+    return new Promise((resolve, reject) => {
+      this.iapModel.startSession().then((session) => {
+        session.startTransaction();
 
-      iap.activityIds
-        .reduce(async (p, _id) => {
-          await p;
-          const url = await this.activitiesService.deploy(_id.toString());
-          iap.deployUrls.set(_id.toString(), url);
-        }, Promise.resolve())
-        .then(async () => {
-          iap.isDeployed = true;
-          return await this.update(id, iap);
-        })
-        .then((r) => {
-          session.commitTransaction();
-          resolve(r);
-        })
-        .catch((err) => {
-          session.abortTransaction();
-          reject(err);
-        });
+        iap.activityIds
+          .reduce(async (p, _id) => {
+            await p;
+            const url = await this.activitiesService.deploy(_id.toString());
+            iap.deployUrls.set(_id.toString(), url);
+          }, Promise.resolve())
+          .then(async () => {
+            iap.isDeployed = true;
+            return await this.update(id, iap);
+          })
+          .then((r) => {
+            session.commitTransaction();
+            resolve(r);
+          })
+          .catch((err) => {
+            session.abortTransaction();
+            reject(err);
+          });
+      });
     });
   }
 
   async findAll(): Promise<Iap[]> {
-    return await this.iapModel.find().exec();
+    return this.iapModel.find().exec();
   }
 
   async findOne(id: string): Promise<Iap> {
-    return await this.iapModel.findOne({ _id: id }).exec();
+    return this.iapModel.findOne({ _id: id }).exec();
   }
 
   async update(id: string, updateIapDto: UpdateIapDto): Promise<Iap> {
-    return await this.iapModel
+    return this.iapModel
       .findByIdAndUpdate({ _id: id }, updateIapDto, {
         new: true,
         upsert: true,
@@ -94,6 +95,6 @@ export class IapsService {
   }
 
   async remove(id: string): Promise<Iap> {
-    return await this.iapModel.findByIdAndDelete({ _id: id }).exec();
+    return this.iapModel.findByIdAndDelete({ _id: id }).exec();
   }
 }

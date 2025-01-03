@@ -83,7 +83,7 @@ export class ActivitiesService {
       );
     }
 
-    const par = await this.activityProvidersClient.getActivityParameters(
+    await this.activityProvidersClient.getActivityParameters(
       createActivityProviderDto.url,
     );
 
@@ -116,7 +116,7 @@ export class ActivitiesService {
       );
     }
 
-    const par = await this.activityProvidersClient.getActivityParameters(
+    await this.activityProvidersClient.getActivityParameters(
       updateActivityProviderDto.url,
     );
 
@@ -125,22 +125,14 @@ export class ActivitiesService {
       .exec();
   }
 
-  async removeActivityProvider(id: string): Promise<ActivityProvider> {
-    return new Promise(async (resolve, reject) => {
-      const count = await this.getActivitiesCountForProvider(id);
-
+  async removeActivityProvider(id: string): Promise<void> {
+    return this.getActivitiesCountForProvider(id).then((count) => {
       if (count > 0) {
-        reject(
-          new BadRequestException(
-            'Activities for the Activity Provider exists!',
-          ),
+        throw new BadRequestException(
+          'Activities for the Activity Provider exists!',
         );
       } else {
-        resolve(
-          await this.activityProviderModel
-            .findByIdAndDelete({ _id: id })
-            .exec(),
-        );
+        this.activityProviderModel.findByIdAndDelete({ _id: id }).exec();
       }
     });
   }
