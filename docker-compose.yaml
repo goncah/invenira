@@ -1,0 +1,98 @@
+version: '3.1'
+services:
+  mongo:
+    container_name: mongodb
+    hostname: mongodb
+    image: mongo:8.0.4@sha256:4f93a84f7d4d8b1b6cb7e0c172d8a44b0bed9b399f207165ea19473bdb5a36b0
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+
+  mongo-express:
+    container_name: mongo-express
+    hostname: mongo-express
+    image: mongo-express:1.0.2-18-alpine3.18@sha256:1b23d7976f0210dbec74045c209e52fbb26d29b2e873d6c6fa3d3f0ae32c2a64
+    ports:
+      - "8090:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root
+      ME_CONFIG_MONGODB_URL: mongodb://root:root@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+
+  invenira-keycloak-db:
+    container_name: invenira-keycloak-db
+    hostname: invenira-keycloak-db
+    image: postgres:17.2-bookworm@sha256:888402a8cd6075c5dc83a31f58287f13306c318eaad016661ed12e076f3e6341
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=invenira-keycloak
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - kc-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U root -d invenira-keycloak'"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  invenira-keycloak:
+    container_name: invenira-keycloak
+    hostname: invenira-keycloak
+    image: quay.io/keycloak/keycloak:26.0.7@sha256:32d2eb0f84aaf85b3e3afef544d5b25fcd40a791d62374f327a0cb5ca9aa1da5
+    depends_on:
+      invenira-keycloak-db:
+        condition: service_healthy
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://invenira-keycloak-db/invenira-keycloak
+      - KC_DB_USERNAME=root
+      - KC_DB_PASSWORD=root
+    volumes:
+      - ./keycloak/invenira-realm.json:/opt/keycloak/data/import/invenira-realm.json
+      - kc:/opt/keycloak/data/h2
+    command: [ "start-dev", "--import-realm"]
+    ports:
+      - "8091:8080"
+    healthcheck:
+      test: "{ printf >&3 'GET /realms/invenira/.well-known/openid-configuration HTTP/1.0\r\nHost: localhost\r\n\r\n'; cat <&3; } 3<>/dev/tcp/localhost/8080 | head -1 | grep 200"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  invenira-backend:
+    container_name: invenira-backend
+    hostname: invenira-backend
+    image: ghcr.io/goncah/invenira-backend:0.0.3
+    depends_on:
+      invenira-keycloak:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGO_URI: mongodb://root:root@mongodb:27017/invenira?authSource=admin
+      OAUTH_KEY: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsj7GAriHQpbvAw66j7y/Mlb4HYqpZDLZss8Dkrc1edZioWOmmN3UtaGHjXhA6ZCvU50rzNTG98Ec0NlYR6jNyByU+eq22K9Fs47X3hXBdo8w60TyLOPxik4A7gIppDeL41PCxz5urpwhl1ybHXcZzbqKeXXbXH2IsuNL8T7gGILZNdQ3IQf0kYyYJqfFh8qod7U0Q7AX1ZUST8FC5YjbE2w+h6WQfVfGrc0eOkH5pvgZbtv+U/dCmXSQ67RNCT/1Em894eM/R/8dihshmi1hdR1L+UDwyAZ45/j1kn+oGOB9EBFsIjlegiXNSOrBbmwMZAoYnYW8KRjMKBNDjE3TmwIDAQAB\n-----END PUBLIC KEY-----"
+
+  invenira-frontend:
+    container_name: invenira-frontend
+    hostname: invenira-frontend
+    image: ghcr.io/goncah/invenira-frontend:0.0.3
+    depends_on:
+      invenira-keycloak:
+        condition: service_healthy
+      invenira-backend:
+        condition: service_started
+    ports:
+      - "8080:80"
+    environment:
+      API_HOSTNAME: http://localhost:3000
+
+volumes:
+  kc-db:
+  kc:
