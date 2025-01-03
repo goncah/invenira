@@ -7,14 +7,20 @@ import './index.css';
 import App from './App';
 import { StrictMode } from 'react';
 import { AuthProvider } from 'react-oidc-context';
-import { authority, clientId, clientSecret, redirectUri } from './constants';
+import {
+  authority,
+  clientId,
+  clientSecret,
+  redirectUri,
+  redirectUriLogout,
+} from './constants';
 
 const oAuthConfig = {
   authority: authority,
   client_id: clientId,
   client_secret: clientSecret,
   redirect_uri: redirectUri,
-  post_logout_redirect_uri: redirectUri + '/logout',
+  post_logout_redirect_uri: redirectUriLogout,
   response_type: 'code',
   scope: 'email openid phone profile roles',
 };
