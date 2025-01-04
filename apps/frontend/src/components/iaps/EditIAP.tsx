@@ -20,10 +20,10 @@ export default function EditIAP() {
   }, []);
 
   useEffect(() => {
-    const token = auth?.user?.access_token;
-    const _id = searchParams.get('id');
+    const token = auth?.user?.access_token || '';
+    const _id = searchParams.get('id') || '';
     iapService
-      .getOne(_id!, token!)
+      .getOne(_id, token)
       .then((data) => {
         if (data.isDeployed) {
           navigate(`/view-iap?id=${_id}`);

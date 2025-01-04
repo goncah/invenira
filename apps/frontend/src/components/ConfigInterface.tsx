@@ -4,11 +4,11 @@ import { useState } from 'react';
 
 export default function ConfigInterface() {
   const [searchParams] = useSearchParams();
-  const url = searchParams.get('interfaceUrl');
+  const url = searchParams.get('interfaceUrl') || '';
 
   const [html, setHtml] = useState('');
 
-  fetch(url!, { method: 'GET' })
+  fetch(url, { method: 'GET' })
     .then((res) => res.text())
     .then((text) => setHtml(text));
 

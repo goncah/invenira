@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, {ChangeEvent, useEffect, useMemo, useState} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -60,16 +60,15 @@ export default function IAPsTable() {
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
-    const token = auth?.user?.access_token;
+    const token = auth?.user?.access_token || '';
     iapService
-      .getAll(token!)
+      .getAll(token)
       .then((data) => setIapList(data))
       .catch(() => handleError('Failed to load IAPs.'));
   }, [auth?.user?.access_token, iapService]);
 
   const token = () => {
-    const token = auth?.user?.access_token;
-    return token!;
+    return auth?.user?.access_token || '';
   };
 
   const handleError = (message: string) => {
@@ -152,13 +151,13 @@ export default function IAPsTable() {
 
   const isAddDisabled = !name.trim() || !description.trim();
 
-  const handleSort = (column: keyof any) => {
+  const handleSort = (column: IapKey) => {
     const isAsc = orderBy === column && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(column as IapKey);
+    setOrderBy(column);
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFilter(e.target.value.toLowerCase());
   };
 

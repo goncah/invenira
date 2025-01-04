@@ -25,7 +25,9 @@ const oAuthConfig = {
   scope: 'email openid phone profile roles',
 };
 
-const root = createRoot(document.getElementById('root')!);
+const root = createRoot(
+  document.getElementById('root') as unknown as HTMLElement,
+);
 
 root.render(
   <StrictMode>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -58,14 +58,13 @@ export default function ActivityProvidersTable() {
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
 
   const token = () => {
-    const token = auth?.user?.access_token;
-    return token!;
+    return auth?.user?.access_token || '';
   };
 
   useEffect(() => {
-    const token = auth?.user?.access_token;
+    const token = auth?.user?.access_token || '';
     apService
-      .getAll(token!)
+      .getAll(token)
       .then((data) => setAplist(data))
       .catch(() => handleError('Failed to load Activity Providers.'));
   }, [apService, auth?.user?.access_token]);
@@ -114,12 +113,12 @@ export default function ActivityProvidersTable() {
 
   const handleCloseEdit = () => setOpenEdit(false);
 
-  const handleInputChange = (e: any) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleEditInputChange = (e: any) => {
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setEditData({ ...editData, url: value });
   };
@@ -140,10 +139,10 @@ export default function ActivityProvidersTable() {
 
   const isAddDisabled = !formData.name.trim() || !formData.url.trim();
 
-  const handleSort = (column: keyof any) => {
+  const handleSort = (column: ActivityProviderKey) => {
     const isAsc = orderBy === column && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(column as ActivityProviderKey);
+    setOrderBy(column);
   };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {

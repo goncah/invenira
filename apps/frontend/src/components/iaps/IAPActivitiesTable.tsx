@@ -24,7 +24,7 @@ import {
 import Typography from '@mui/material/Typography';
 import { IAPsService } from '../../services/iaps.service';
 import { useAuth } from 'react-oidc-context';
-import { Activity, Iap } from '@invenira/model';
+import { Activity } from '@invenira/model';
 
 const style = {
   position: 'absolute',
@@ -39,8 +39,8 @@ const style = {
 };
 
 interface IAPActivitiesTableProps {
-  iapId: string | undefined;
-  activityIds: string[] | undefined;
+  iapId: string;
+  activityIds: string[];
 }
 
 export default function IAPActivitiesTable({
@@ -57,7 +57,7 @@ export default function IAPActivitiesTable({
 
   const auth = useAuth();
   const [activityList, setActivityList] = useState<Activity[]>([]);
-  const [iapActivityList, setIapActivityList] = useState<Iap[]>([]);
+  const [iapActivityList, setIapActivityList] = useState<Activity[]>([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [activityId, setActivityId] = useState<string>('');
   const [error, setError] = useState({ open: false, message: '' });
@@ -68,9 +68,9 @@ export default function IAPActivitiesTable({
   } | null>(null);
 
   const fetchAndMap = () => {
-    const token = auth?.user?.access_token;
+    const token = auth?.user?.access_token || '';
     activityService
-      .getAll(token!)
+      .getAll(token)
       .then((activities) => {
         setActivityList(activities);
         return activities;
@@ -90,8 +90,7 @@ export default function IAPActivitiesTable({
   ]);
 
   const token = () => {
-    const token = auth?.user?.access_token;
-    return token!;
+    return auth?.user?.access_token || '';
   };
 
   const handleError = (message: string) => {
@@ -101,7 +100,7 @@ export default function IAPActivitiesTable({
   const handleRemove = () => {
     if (!removeTarget) return;
     iapService
-      .removeActivity(iapId!, removeTarget.id, token())
+      .removeActivity(iapId, removeTarget.id, token())
       .then(
         () => (activityIds = activityIds?.filter((i) => i !== removeTarget.id)),
       )
@@ -129,7 +128,7 @@ export default function IAPActivitiesTable({
 
   const handleAdd = () => {
     iapService
-      .addActivity(iapId!, activityId, token())
+      .addActivity(iapId, activityId, token())
       .then(() => activityIds?.push(activityId))
       .then(() => fetchAndMap())
       .then(() => setActivityId(''))

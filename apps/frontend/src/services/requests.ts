@@ -13,11 +13,11 @@ export async function getRequest<T>(url: string, token: string): Promise<T> {
   }
 }
 
-export async function postRequest<T>(
+export async function postRequest<I, O>(
   url: string,
   token: string,
-  body: any,
-): Promise<T> {
+  body: I,
+): Promise<O> {
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -33,11 +33,11 @@ export async function postRequest<T>(
   }
 }
 
-export async function patchRequest<T>(
+export async function patchRequest<I, O>(
   url: string,
   token: string,
-  body: any,
-): Promise<T> {
+  body: I,
+): Promise<O> {
   const res = await fetch(url, {
     method: 'PATCH',
     headers: {
