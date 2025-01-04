@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useEffect, useMemo, useState} from 'react';
+import React, { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -272,13 +272,17 @@ export default function IAPsTable() {
                 </TableCell>
                 <TableCell>{row.updatedBy}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={() => handleView(row._id)}
-                  >
-                    View
-                  </Button>
+                  {row.isDeployed ? (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => handleView(row._id)}
+                    >
+                      View
+                    </Button>
+                  ) : (
+                    ''
+                  )}
                   {!row.isDeployed ? (
                     <Button
                       variant="outlined"
@@ -291,7 +295,7 @@ export default function IAPsTable() {
                   ) : (
                     ''
                   )}
-                  {!row.isDeployed ? (
+                  {!row.isDeployed && row.activityIds.length > 0 ? (
                     <Button
                       variant="outlined"
                       color="primary"
