@@ -12,6 +12,7 @@ import EditIAP from './components/iaps/EditIAP';
 import { useAuth } from 'react-oidc-context';
 import { CircularProgress } from '@mui/material';
 import Logout from './components/Logout';
+import Button from '@mui/material/Button';
 
 export default function App() {
   const auth = useAuth();
@@ -52,7 +53,9 @@ export default function App() {
   return (
     <div>
       <h2>Inven!RA</h2>
-      <button onClick={() => auth.signinRedirect()}>Login</button>
+      <Button color="inherit" onClick={() => auth.signinRedirect()}>
+        Login
+      </Button>
     </div>
   );
 }

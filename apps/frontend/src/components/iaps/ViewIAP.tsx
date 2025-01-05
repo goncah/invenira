@@ -1,13 +1,17 @@
 import { useSearchParams } from 'react-router-dom';
+import Typography from '@mui/material/Typography';
+import React from 'react';
 
 export default function ViewIAP() {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
 
   return (
-    <div>
-      <h2>View IAP</h2>
+    <>
+      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+        View IAP
+      </Typography>
       <p>IAP ID: {id}</p>
-    </div>
+    </>
   );
 }

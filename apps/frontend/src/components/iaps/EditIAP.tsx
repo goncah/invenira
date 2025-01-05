@@ -211,7 +211,9 @@ export default function EditIAP() {
 
   return (
     <>
-      <h2>Edit {iap.name} IAP</h2>
+      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+        Edit {iap.name} IAP
+      </Typography>
       <p>IAP ID: {iap._id}</p>
       <p>IAP Description: {iap.description}</p>
       <p>Deployed: {iap.isDeployed ? 'Yes' : 'No'}</p>

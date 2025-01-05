@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Typography from '@mui/material/Typography';
 
 const style = {
   position: 'absolute',
@@ -211,8 +212,9 @@ export default function ActivityProviders() {
 
   return (
     <>
-      <h2>Activity Providers</h2>
-
+      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+        Activity Providers
+      </Typography>
       <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
 
       <Button

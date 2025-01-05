@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Typography from '@mui/material/Typography';
 
 const style = {
   position: 'absolute',
@@ -238,9 +239,10 @@ export default function IAPs() {
   }, [auth?.user?.access_token, iapService, mapIaps]);
 
   return (
-    <div>
-      <h2>Inventive Activity Plans</h2>
-
+    <>
+      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+        Inventive Activity Plans
+      </Typography>
       <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
 
       <Button
@@ -328,6 +330,6 @@ export default function IAPs() {
           {error.message}
         </Alert>
       </Snackbar>
-    </div>
+    </>
   );
 }

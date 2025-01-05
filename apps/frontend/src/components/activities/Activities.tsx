@@ -23,6 +23,7 @@ import {
 } from '@mui/material';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Typography from '@mui/material/Typography';
 
 const style = {
   position: 'absolute',
@@ -241,8 +242,10 @@ export default function Activities() {
     !formData.name.trim() || !formData.activityProviderId.trim();
 
   return (
-    <div>
-      <h2>Activities</h2>
+    <>
+      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+        Activities
+      </Typography>
 
       <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
 
@@ -379,6 +382,6 @@ export default function Activities() {
           {error.message}
         </Alert>
       </Snackbar>
-    </div>
+    </>
   );
 }
