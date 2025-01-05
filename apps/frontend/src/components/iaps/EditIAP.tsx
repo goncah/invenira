@@ -253,11 +253,13 @@ export default function EditIAP() {
             value={activityId}
             onChange={(e) => setActivityId(e.target.value)}
           >
-            {activityList.map((ap) => (
-              <MenuItem key={ap._id} value={ap._id}>
-                {ap.name}
-              </MenuItem>
-            ))}
+            {activityList
+              .filter((a) => !iap.activityIds.includes(a._id))
+              .map((ap) => (
+                <MenuItem key={ap._id} value={ap._id}>
+                  {ap.name}
+                </MenuItem>
+              ))}
           </TextField>
           <Button
             variant="contained"
