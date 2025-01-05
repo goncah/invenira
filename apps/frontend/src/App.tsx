@@ -13,22 +13,30 @@ import { useAuth } from 'react-oidc-context';
 import { CircularProgress } from '@mui/material';
 import Logout from './components/Logout';
 import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import React from 'react';
 
 export default function App() {
   const auth = useAuth();
 
   if (auth.isLoading) {
     return (
-      <div>
-        <h2>Inven!RA</h2>
+      <>
+        <Typography variant="h4" component="div" sx={{ mr: 2 }}>
+          Inven!RA
+        </Typography>
         <CircularProgress />
-      </div>
+      </>
     );
   }
 
   if (auth.error) {
     console.log(auth.error);
-    return <div>Erro</div>;
+    return (
+      <Typography variant="h4" component="div" sx={{ mr: 2 }}>
+        Error
+      </Typography>
+    );
   }
 
   if (auth.isAuthenticated) {
@@ -51,11 +59,13 @@ export default function App() {
   }
 
   return (
-    <div>
-      <h2>Inven!RA</h2>
+    <>
+      <Typography variant="h4" component="div" sx={{ mr: 2 }}>
+        Inven!RA
+      </Typography>
       <Button color="inherit" onClick={() => auth.signinRedirect()}>
         Login
       </Button>
-    </div>
+    </>
   );
 }
