@@ -616,7 +616,7 @@
       "backchannel.logout.session.required" : "false",
       "login_theme" : "keycloak.v2",
       "frontchannel.logout.url" : "http://localhost:8080/logout",
-      "post.logout.redirect.uris" : "http://localhost:8080",
+      "post.logout.redirect.uris" : "http://localhost:8080/*",
       "display.on.consent.screen" : "false",
       "oauth2.device.authorization.grant.enabled" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false"
