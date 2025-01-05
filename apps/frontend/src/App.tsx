@@ -8,7 +8,7 @@ import Layout from './components/layout/Layout';
 import ViewIAP from './components/iaps/ViewIAP';
 import EditIAP from './components/iaps/EditIAP';
 import { useAuth } from 'react-oidc-context';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Grid2 } from '@mui/material';
 import Logout from './components/Logout';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -16,34 +16,6 @@ import React from 'react';
 
 export default function App() {
   const auth = useAuth();
-
-  if (auth.isLoading) {
-    return (
-      <>
-        <Typography
-          variant="h4"
-          component="div"
-          sx={{ mr: 2, textAlign: 'center' }}
-        >
-          Inven!RA
-        </Typography>
-        <CircularProgress />
-      </>
-    );
-  }
-
-  if (auth.error) {
-    console.log(auth.error);
-    return (
-      <Typography
-        variant="h4"
-        component="div"
-        sx={{ mr: 2, textAlign: 'center' }}
-      >
-        Error
-      </Typography>
-    );
-  }
 
   if (auth.isAuthenticated) {
     return (
@@ -62,20 +34,36 @@ export default function App() {
         </Routes>
       </Router>
     );
-  }
-
-  return (
-    <>
-      <Typography
-        variant="h4"
-        component="div"
-        sx={{ mr: 2, textAlign: 'center' }}
+  } else {
+    return (
+      <Grid2
+        container
+        spacing={0}
+        direction="column"
+        alignItems="center"
+        justifyContent="center"
+        sx={{ minHeight: '100vh' }}
       >
-        Inven!RA
-      </Typography>
-      <Button color="inherit" onClick={() => auth.signinRedirect()}>
-        Login
-      </Button>
-    </>
-  );
+        <Grid2>
+          <Typography variant="h4" component="div" sx={{ textAlign: 'center' }}>
+            Inven!RA
+            <br />
+            {auth.isLoading ? (
+              <CircularProgress />
+            ) : auth.error ? (
+              'Error'
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => auth.signinRedirect()}
+              >
+                Login
+              </Button>
+            )}
+          </Typography>
+        </Grid2>
+      </Grid2>
+    );
+  }
 }
