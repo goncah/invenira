@@ -5,7 +5,5 @@
   "projectType": "application",
   "tags": [],
   "targets": {},
-  "implicitDependencies": [
-    "model"
-  ]
+  "implicitDependencies": ["model", "components"]
 }

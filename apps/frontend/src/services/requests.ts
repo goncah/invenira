@@ -1,3 +1,19 @@
+const parseBody = <T>(body: string): T => {
+  const dateParser = (key: string, value: unknown) => {
+    const iso =
+      /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*))(?:Z|(\+|-)([\d|:]*))?$/;
+    if (typeof value === 'string') {
+      if (iso.exec(value)) {
+        return new Date(value);
+      }
+      return value;
+    }
+    return value;
+  };
+
+  return JSON.parse(body, dateParser);
+};
+
 export async function getRequest<T>(url: string, token: string): Promise<T> {
   const res = await fetch(url, {
     method: 'GET',
@@ -7,7 +23,7 @@ export async function getRequest<T>(url: string, token: string): Promise<T> {
     },
   });
   if (res.ok) {
-    return res.json();
+    return parseBody<T>(await res.text());
   } else {
     throw new Error(res.statusText);
   }
@@ -27,7 +43,7 @@ export async function postRequest<I, O>(
     body: JSON.stringify(body),
   });
   if (res.ok) {
-    return res.json();
+    return parseBody<O>(await res.text());
   } else {
     throw new Error(res.statusText);
   }
@@ -47,7 +63,7 @@ export async function patchRequest<I, O>(
     body: JSON.stringify(body),
   });
   if (res.ok) {
-    return res.json();
+    return parseBody<O>(await res.text());
   } else {
     throw new Error(res.statusText);
   }

@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@invenira/components": ["libs/components/src/index.ts"],
       "@invenira/model": ["libs/model/src/index.ts"]
     }
   },
