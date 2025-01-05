@@ -1,5 +1,3 @@
-import './App.css';
-
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './components/Home';
 import Activities from './components/activities/Activities';
@@ -22,7 +20,11 @@ export default function App() {
   if (auth.isLoading) {
     return (
       <>
-        <Typography variant="h4" component="div" sx={{ mr: 2 }}>
+        <Typography
+          variant="h4"
+          component="div"
+          sx={{ mr: 2, textAlign: 'center' }}
+        >
           Inven!RA
         </Typography>
         <CircularProgress />
@@ -33,7 +35,11 @@ export default function App() {
   if (auth.error) {
     console.log(auth.error);
     return (
-      <Typography variant="h4" component="div" sx={{ mr: 2 }}>
+      <Typography
+        variant="h4"
+        component="div"
+        sx={{ mr: 2, textAlign: 'center' }}
+      >
         Error
       </Typography>
     );
@@ -60,7 +66,11 @@ export default function App() {
 
   return (
     <>
-      <Typography variant="h4" component="div" sx={{ mr: 2 }}>
+      <Typography
+        variant="h4"
+        component="div"
+        sx={{ mr: 2, textAlign: 'center' }}
+      >
         Inven!RA
       </Typography>
       <Button color="inherit" onClick={() => auth.signinRedirect()}>

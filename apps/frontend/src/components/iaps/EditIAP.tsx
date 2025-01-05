@@ -211,7 +211,11 @@ export default function EditIAP() {
 
   return (
     <>
-      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+      <Typography
+        variant="h5"
+        component="div"
+        sx={{ mr: 2, textAlign: 'center' }}
+      >
         Edit {iap.name} IAP
       </Typography>
       <p>IAP ID: {iap._id}</p>

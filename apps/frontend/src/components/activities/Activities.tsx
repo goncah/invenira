@@ -243,7 +243,11 @@ export default function Activities() {
 
   return (
     <>
-      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+      <Typography
+        variant="h5"
+        component="div"
+        sx={{ mr: 2, textAlign: 'center' }}
+      >
         Activities
       </Typography>
 

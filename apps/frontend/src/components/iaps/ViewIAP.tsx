@@ -8,7 +8,11 @@ export default function ViewIAP() {
 
   return (
     <>
-      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+      <Typography
+        variant="h5"
+        component="div"
+        sx={{ mr: 2, textAlign: 'center' }}
+      >
         View IAP
       </Typography>
       <p>IAP ID: {id}</p>

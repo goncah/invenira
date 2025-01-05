@@ -3,7 +3,8 @@ import Navbar from './NavBar';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, PaletteMode } from '@mui/material/styles';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { GlobalStyles, ThemeProvider } from '@mui/material';
+import { Container, GlobalStyles, ThemeProvider } from '@mui/material';
+import Box from '@mui/material/Box';
 
 interface ThemeContextProps {
   mode: PaletteMode;
@@ -59,7 +60,18 @@ export default function Layout() {
             <Navbar theme={theme} />
           </header>
           <main>
-            <Outlet />
+            <Container>
+              <Box
+                sx={{
+                  pt: 30,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  gap: 4,
+                }}
+              >
+                <Outlet />
+              </Box>
+            </Container>
           </main>
         </ThemeProvider>
       </ThemeContext.Provider>

@@ -212,7 +212,11 @@ export default function ActivityProviders() {
 
   return (
     <>
-      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+      <Typography
+        variant="h5"
+        component="div"
+        sx={{ mr: 2, textAlign: 'center' }}
+      >
         Activity Providers
       </Typography>
       <FilterableTable columns={columns} sortBy={'name'} rows={rows} />

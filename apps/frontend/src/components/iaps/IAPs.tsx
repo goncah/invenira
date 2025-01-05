@@ -240,7 +240,11 @@ export default function IAPs() {
 
   return (
     <>
-      <Typography variant="h5" component="div" sx={{ mr: 2 }}>
+      <Typography
+        variant="h5"
+        component="div"
+        sx={{ mr: 2, textAlign: 'center' }}
+      >
         Inventive Activity Plans
       </Typography>
       <FilterableTable columns={columns} sortBy={'name'} rows={rows} />

@@ -59,17 +59,11 @@ export function FilterableTable<T>(props: FilterableTableProps<T>) {
     return 0;
   });
 
-  const allKeys =
-    sortedData.length > 0
-      ? (Object.keys(sortedData[0].row as object) as unknown as (keyof T)[])
-      : ([] as unknown as (keyof T)[]);
-
   return (
     <>
       <TextField
         label="Filter"
         variant="outlined"
-        fullWidth
         margin="normal"
         onChange={handleFilterChange}
         placeholder="Search by any field"
