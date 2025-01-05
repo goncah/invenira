@@ -2,9 +2,8 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './NavBar';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, PaletteMode } from '@mui/material/styles';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { Container, GlobalStyles, ThemeProvider } from '@mui/material';
-import Box from '@mui/material/Box';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { GlobalStyles, Grid2, ThemeProvider } from '@mui/material';
 
 interface ThemeContextProps {
   mode: PaletteMode;
@@ -60,18 +59,18 @@ export default function Layout() {
             <Navbar theme={theme} />
           </header>
           <main>
-            <Container>
-              <Box
-                sx={{
-                  pt: 30,
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  gap: 4,
-                }}
-              >
+            <Grid2
+              container
+              spacing={0}
+              direction="column"
+              alignItems="center"
+              justifyContent="center"
+              sx={{ minHeight: '100vh' }}
+            >
+              <Grid2>
                 <Outlet />
-              </Box>
-            </Container>
+              </Grid2>
+            </Grid2>
           </main>
         </ThemeProvider>
       </ThemeContext.Provider>
