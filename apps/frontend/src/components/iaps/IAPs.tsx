@@ -107,6 +107,7 @@ export default function IAPs() {
         if (iap.isDeployed) {
           row.actions.push(
             <Button
+              key={`btn-${iap._id}-01`}
               variant="outlined"
               color="primary"
               onClick={() => handleView(iap._id)}
@@ -119,6 +120,7 @@ export default function IAPs() {
         if (!iap.isDeployed) {
           row.actions.push(
             <Button
+              key={`btn-${iap._id}-02`}
               variant="outlined"
               color="primary"
               onClick={() => handleEdit(iap._id)}
@@ -132,6 +134,7 @@ export default function IAPs() {
         if (!iap.isDeployed && iap.activityIds.length > 0) {
           row.actions.push(
             <Button
+              key={`btn-${iap._id}-03`}
               variant="outlined"
               color="primary"
               onClick={() => handleDeploy(iap._id)}
@@ -144,6 +147,7 @@ export default function IAPs() {
 
         row.actions.push(
           <Button
+            key={`btn-${iap._id}-04`}
             variant="outlined"
             color="secondary"
             onClick={() => openDeleteConfirmation(iap._id, iap.name)}

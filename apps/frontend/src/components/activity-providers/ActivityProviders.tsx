@@ -114,6 +114,7 @@ export default function ActivityProviders() {
               row: row,
               actions: [
                 <Button
+                  key={`btn-${row._id}-01`}
                   variant="outlined"
                   color="primary"
                   onClick={() => handleOpenEdit(row._id, row.url)}
@@ -121,6 +122,7 @@ export default function ActivityProviders() {
                   Edit
                 </Button>,
                 <Button
+                  key={`btn-${row._id}-02`}
                   variant="outlined"
                   color="secondary"
                   onClick={() => openDeleteConfirmation(row._id, row.name)}

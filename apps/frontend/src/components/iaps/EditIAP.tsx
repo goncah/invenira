@@ -15,11 +15,14 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import {
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Divider,
+  Grid2,
 } from '@mui/material';
 
 const style = {
@@ -84,11 +87,12 @@ export default function EditIAP() {
         setRows(
           activities
             .filter((a) => iap.activityIds?.includes(a._id))
-            .map((a) => {
+            .map((a, idx) => {
               return {
                 row: a,
                 actions: [
                   <Button
+                    key={`btn-${a._id}-${idx}`}
                     variant="outlined"
                     color="secondary"
                     onClick={() => openRemoveConfirmation(a._id, a.name)}
@@ -132,11 +136,12 @@ export default function EditIAP() {
           setRows(
             activities
               .filter((a) => iap.activityIds?.includes(a._id))
-              .map((a) => {
+              .map((a, idx) => {
                 return {
                   row: a,
                   actions: [
                     <Button
+                      key={`btn-${a._id}-${idx}`}
                       variant="outlined"
                       color="secondary"
                       onClick={() => openRemoveConfirmation(a._id, a.name)}
@@ -163,6 +168,13 @@ export default function EditIAP() {
 
   const token = () => {
     return auth?.user?.access_token || '';
+  };
+
+  const handleDeploy = () => {
+    iapService
+      .deploy(iap._id, token())
+      .then(() => navigate(`/view-iap?id=${iap._id}`))
+      .catch(() => handleError('Failed to deploy IAP.'));
   };
 
   const handleRemove = () => {
@@ -210,31 +222,41 @@ export default function EditIAP() {
   const isAddDisabled = !activityId.trim();
 
   return (
-    <>
-      <Typography
-        variant="h5"
-        component="div"
-        sx={{ mr: 2, textAlign: 'center' }}
-      >
-        Edit {iap.name} IAP
-      </Typography>
-      <p>IAP ID: {iap._id}</p>
-      <p>IAP Description: {iap.description}</p>
-      <p>Deployed: {iap.isDeployed ? 'Yes' : 'No'}</p>
+    <Grid2>
+      <Grid2>
+        <Typography
+          variant="h5"
+          component="div"
+          sx={{ mr: 2, textAlign: 'center' }}
+        >
+          Edit {iap.name} IAP
+        </Typography>
+        <Typography component="div" sx={{ mr: 2 }}>
+          <p>IAP ID: {iap._id}</p>
+          <p>IAP Description: {iap.description}</p>
+          <p>Deployed: {iap.isDeployed ? 'Yes' : 'No'}</p>
+        </Typography>
+        <Container
+          sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
+        >
+          <Button variant="contained" color="primary" onClick={handleDeploy}>
+            Deploy
+          </Button>
+        </Container>
+        <Divider>Activities:</Divider>
+        <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
 
-      <Typography variant="h5" component="div" sx={{ mr: 70 }}>
-        Activities:
-      </Typography>
-      <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
-
-      <Button
-        variant="contained"
-        color="primary"
-        sx={{ marginTop: 2, float: 'right' }}
-        onClick={handleOpenAdd}
-      >
-        Add
-      </Button>
+        <Container
+          sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
+        >
+          <Button variant="contained" color="primary" onClick={handleOpenAdd}>
+            Add
+          </Button>
+        </Container>
+      </Grid2>
+      <Grid2>
+        <Divider>Objectives:</Divider>
+      </Grid2>
 
       <Modal
         open={openAdd}
@@ -312,6 +334,6 @@ export default function EditIAP() {
           {error.message}
         </Alert>
       </Snackbar>
-    </>
+    </Grid2>
   );
 }

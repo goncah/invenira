@@ -59,6 +59,20 @@ export function FilterableTable<T>(props: FilterableTableProps<T>) {
     return 0;
   });
 
+  const mapField = (field: unknown): string => {
+    if (field instanceof Date) {
+      return (field as Date).toLocaleString(
+        Intl.NumberFormat().resolvedOptions().locale,
+      );
+    }
+
+    if (typeof field == 'boolean') {
+      return (field as boolean) ? 'Yes' : 'No';
+    }
+
+    return field as string;
+  };
+
   return (
     <>
       <TextField
@@ -72,9 +86,10 @@ export function FilterableTable<T>(props: FilterableTableProps<T>) {
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              {props.columns.map((column) => (
-                <TableCell key={column.id as string}>
+              {props.columns.map((column, rowIndex) => (
+                <TableCell key={`header-${column.id as string}-${rowIndex}`}>
                   <TableSortLabel
+                    key={`sort-${column.id as string}-${rowIndex}`}
                     active={orderBy === column.id}
                     direction={order}
                     onClick={() => handleSort(column.id)}
@@ -83,24 +98,22 @@ export function FilterableTable<T>(props: FilterableTableProps<T>) {
                   </TableSortLabel>
                 </TableCell>
               ))}
-              <TableCell>Actions</TableCell>
+              <TableCell key={'column_actions'}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {sortedData.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
+              <TableRow key={'row_' + rowIndex}>
                 {props.columns.map((column) => (
-                  <TableCell key={column.id as string}>
+                  <TableCell key={`row-${column.id as string}-${rowIndex}`}>
                     {row.row[column.id] !== undefined
-                      ? row.row[column.id] instanceof Date
-                        ? (row.row[column.id] as Date).toLocaleString(
-                            Intl.NumberFormat().resolvedOptions().locale,
-                          )
-                        : (row.row[column.id] as string)
+                      ? mapField(row.row[column.id])
                       : '-'}
                   </TableCell>
                 ))}
-                <TableCell>{row.actions}</TableCell>
+                <TableCell key={'row_actions_' + rowIndex}>
+                  {row.actions}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

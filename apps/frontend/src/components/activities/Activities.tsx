@@ -127,6 +127,7 @@ export default function Activities() {
               row: a as EnrichedActivity,
               actions: [
                 <Button
+                  key={`btn-${a._id}-01`}
                   variant="outlined"
                   color="secondary"
                   onClick={() => openDeleteConfirmation(a._id, a.name)}
