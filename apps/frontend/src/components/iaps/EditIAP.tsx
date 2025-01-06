@@ -11,7 +11,6 @@ import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
 import {
   CircularProgress,
   Container,
@@ -25,6 +24,7 @@ import {
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useError } from '../layout/Layout';
+import MenuItem from '@mui/material/MenuItem';
 
 const style = {
   position: 'absolute',
@@ -67,6 +67,19 @@ export default function EditIAP() {
   }, []);
 
   const queryClient = useQueryClient();
+
+  const { data: iaps, isLoading: isIapsLoading } = useQuery(
+    ['iaps', searchParams.get('id')],
+    async () => {
+      const token = auth?.user?.access_token || '';
+      return iapService.getAll(token);
+    },
+    {
+      onError: () => {
+        showError('Failed to load IAP.');
+      },
+    },
+  );
 
   const { data: iap, isLoading: isIapLoading } = useQuery(
     ['iap', searchParams.get('id')],
@@ -179,26 +192,28 @@ export default function EditIAP() {
 
   const isAddDisabled = !activityId.trim();
 
-  const rows = activityList
-    ? activityList
-        .filter((a) => iap?.activityIds?.includes(a._id))
-        .map((a, idx) => ({
-          row: a,
-          actions: [
-            <Button
-              key={`btn-${a._id}-${idx}`}
-              variant="outlined"
-              color="secondary"
-              onClick={() => openRemoveConfirmation(a._id, a.name)}
-              sx={{ marginLeft: 1 }}
-            >
-              Remove
-            </Button>,
-          ],
-        }))
-    : [];
+  const iapActivities = activityList
+    ?.filter((a) => iap?.activityIds?.includes(a._id))
+    .map((a, idx) => ({
+      row: a,
+      actions: [
+        <Button
+          key={`btn-${a._id}-${idx}`}
+          variant="outlined"
+          color="secondary"
+          onClick={() => openRemoveConfirmation(a._id, a.name)}
+          sx={{ marginLeft: 1 }}
+        >
+          Remove
+        </Button>,
+      ],
+    }));
 
-  if (isIapLoading || isActivitiesLoading) {
+  const availableActivities = activityList?.filter(
+    (a) => !iaps?.find((i) => i.activityIds.includes(a._id)),
+  );
+
+  if (isIapsLoading || isIapLoading || isActivitiesLoading) {
     return <CircularProgress />;
   }
 
@@ -230,7 +245,11 @@ export default function EditIAP() {
           </Button>
         </Container>
         <Divider>Activities:</Divider>
-        <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
+        <FilterableTable
+          columns={columns}
+          sortBy={'name'}
+          rows={iapActivities || []}
+        />
 
         <Container
           sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
@@ -242,21 +261,21 @@ export default function EditIAP() {
       </Grid2>
       <Grid2>
         <Divider>Objectives:</Divider>
-      </Grid2>
 
-      <FilterableTable columns={[]} sortBy={'name'} rows={[]} />
+        <FilterableTable columns={[]} sortBy={'name'} rows={[]} />
 
-      <Container
-        sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
-      >
-        <Button
-          variant="contained"
-          color="primary"
-          disabled={iap?.activityIds?.length === 0}
+        <Container
+          sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
         >
-          Add
-        </Button>
-      </Container>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={iap?.activityIds?.length === 0}
+          >
+            Add
+          </Button>
+        </Container>
+      </Grid2>
       <Modal
         open={openAdd}
         onClose={handleCloseAdd}
@@ -264,7 +283,7 @@ export default function EditIAP() {
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
-          <h2 id="modal-modal-title">Add New Activity</h2>
+          <h2 id="modal-modal-title">Add Activity to IAP</h2>
           <TextField
             select
             fullWidth
@@ -274,13 +293,11 @@ export default function EditIAP() {
             value={activityId}
             onChange={(e) => setActivityId(e.target.value)}
           >
-            {activityList
-              ?.filter((a) => !iap?.activityIds?.includes(a._id))
-              .map((ap) => (
-                <MenuItem key={ap._id} value={ap._id}>
-                  {ap.name}
-                </MenuItem>
-              ))}
+            {availableActivities?.map((ap) => (
+              <MenuItem key={ap._id} value={ap._id}>
+                {ap.name}
+              </MenuItem>
+            ))}
           </TextField>
           <Button
             variant="contained"
