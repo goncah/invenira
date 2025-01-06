@@ -4,6 +4,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, PaletteMode } from '@mui/material/styles';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { GlobalStyles, Grid2, ThemeProvider } from '@mui/material';
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 
 interface ThemeContextProps {
   mode: PaletteMode;
@@ -14,9 +16,29 @@ const ThemeContext = createContext<ThemeContextProps>(
   {} as unknown as ThemeContextProps,
 );
 
+interface ErrorProps {
+  showError: (message: string) => void;
+}
+
+let ErrorContext = createContext<ErrorProps>({ showError: () => null });
+
+export const useError = () => useContext(ErrorContext);
+
 export const useTheme = () => useContext(ThemeContext);
 
 export default function Layout() {
+  const [error, setError] = useState({ open: false, message: '' });
+
+  const handleErrorClose = () => {
+    setError({ open: false, message: '' });
+  };
+
+  const handleError = (message: string) => {
+    setError({ open: true, message });
+  };
+
+  ErrorContext = createContext<ErrorProps>({ showError: handleError });
+
   const [mode, setMode] = useState<PaletteMode>(() => {
     return (localStorage.getItem('theme') as PaletteMode) || 'dark';
   });
@@ -71,6 +93,19 @@ export default function Layout() {
                 <Outlet />
               </Grid2>
             </Grid2>
+            <Snackbar
+              open={error.open}
+              autoHideDuration={6000}
+              onClose={handleErrorClose}
+            >
+              <Alert
+                onClose={handleErrorClose}
+                severity="error"
+                sx={{ width: '100%' }}
+              >
+                {error.message}
+              </Alert>
+            </Snackbar>
           </main>
         </ThemeProvider>
       </ThemeContext.Provider>

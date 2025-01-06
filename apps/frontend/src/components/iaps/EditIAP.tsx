@@ -1,9 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import * as React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { IAPsService } from '../../services/iaps.service';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import { useAuth } from 'react-oidc-context';
 import { ActivityKey } from '@invenira/model';
 import { ActivitiesService } from '../../services/activities.service';
@@ -26,6 +24,7 @@ import {
   Grid2,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useError } from '../layout/Layout';
 
 const style = {
   position: 'absolute',
@@ -50,7 +49,6 @@ export default function EditIAP() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const auth = useAuth();
-  const [error, setError] = React.useState({ open: false, message: '' });
   const [openAdd, setOpenAdd] = useState(false);
   const [activityId, setActivityId] = useState<string>('');
   const [confirmRemove, setConfirmRemove] = useState(false);
@@ -58,6 +56,7 @@ export default function EditIAP() {
     id: string;
     name: string;
   } | null>(null);
+  const { showError } = useError();
 
   const iapService = useMemo(() => {
     return new IAPsService();
@@ -83,7 +82,7 @@ export default function EditIAP() {
         }
       },
       onError: () => {
-        handleError('Failed to load IAP.');
+        showError('Failed to load IAP.');
       },
     },
   );
@@ -96,7 +95,7 @@ export default function EditIAP() {
     },
     {
       onError: () => {
-        handleError('Failed to load activities.');
+        showError('Failed to load activities.');
       },
     },
   );
@@ -114,7 +113,7 @@ export default function EditIAP() {
           .then(() => setOpenAdd(false));
       },
       onError: () => {
-        handleError('Failed to add the activity.');
+        showError('Failed to add the activity.');
       },
     },
   );
@@ -135,7 +134,7 @@ export default function EditIAP() {
           .then(() => closeRemoveConfirmation());
       },
       onError: () => {
-        handleError('Failed to remove the activity.');
+        showError('Failed to remove the activity.');
       },
     },
   );
@@ -150,7 +149,7 @@ export default function EditIAP() {
         navigate(`/view-iap?id=${iap?._id}`);
       },
       onError: () => {
-        handleError('Failed to deploy IAP.');
+        showError('Failed to deploy IAP.');
       },
     },
   );
@@ -159,17 +158,6 @@ export default function EditIAP() {
     add: () => addActivityMutation.mutate(),
     remove: () => removeActivityMutation.mutate(),
     deploy: () => deployMutation.mutate(),
-  };
-
-  const handleError = useCallback(
-    (message: string) => {
-      setError({ open: true, message });
-    },
-    [setError],
-  );
-
-  const handleErrorClose = () => {
-    setError({ open: false, message: '' });
   };
 
   const openRemoveConfirmation = (id: string, name: string) => {
@@ -331,20 +319,6 @@ export default function EditIAP() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={error.open}
-        autoHideDuration={6000}
-        onClose={handleErrorClose}
-      >
-        <Alert
-          onClose={handleErrorClose}
-          severity="error"
-          sx={{ width: '100%' }}
-        >
-          {error.message}
-        </Alert>
-      </Snackbar>
     </Grid2>
   );
 }

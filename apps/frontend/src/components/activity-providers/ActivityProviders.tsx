@@ -15,10 +15,9 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useError } from '../layout/Layout';
 
 const style = {
   position: 'absolute',
@@ -66,7 +65,6 @@ export default function ActivityProviders() {
   const auth = useAuth();
   const queryClient = useQueryClient();
 
-  const [error, setError] = useState({ open: false, message: '' });
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [createData, setCreateData] = useState({ name: '', url: '' });
@@ -76,6 +74,7 @@ export default function ActivityProviders() {
     id: string;
     name: string;
   } | null>(null);
+  const { showError } = useError();
 
   const token = () => {
     return auth?.user?.access_token || '';
@@ -113,7 +112,7 @@ export default function ActivityProviders() {
     },
     {
       onError: () => {
-        handleError('Failed to load Activity Providers.');
+        showError('Failed to load Activity Providers.');
       },
     },
   );
@@ -131,7 +130,7 @@ export default function ActivityProviders() {
           .then(() => setOpenAdd(false));
       },
       onError: () => {
-        handleError('Failed to add Activity Provider.');
+        showError('Failed to add Activity Provider.');
       },
     },
   );
@@ -151,7 +150,7 @@ export default function ActivityProviders() {
           .then(() => setConfirmDelete(false));
       },
       onError: () => {
-        handleError('Failed to delete Activity Provider.');
+        showError('Failed to delete Activity Provider.');
       },
     },
   );
@@ -168,7 +167,7 @@ export default function ActivityProviders() {
           .then(() => setOpenEdit(false));
       },
       onError: () => {
-        handleError('Failed to edit Activity Provider.');
+        showError('Failed to edit Activity Provider.');
       },
     },
   );
@@ -177,10 +176,6 @@ export default function ActivityProviders() {
     add: () => addActivityProviderMutation.mutate(),
     edit: () => editActivityProviderMutation.mutate(),
     delete: () => deleteActivityProviderMutation.mutate(),
-  };
-
-  const handleError = (message: string) => {
-    setError({ open: true, message });
   };
 
   const openDeleteConfirmation = (id: string, name: string) => {
@@ -213,10 +208,6 @@ export default function ActivityProviders() {
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setEditData({ ...editData, url: value });
-  };
-
-  const handleErrorClose = () => {
-    setError({ open: false, message: '' });
   };
 
   const isAddDisabled = !createData.name.trim() || !createData.url.trim();
@@ -348,20 +339,6 @@ export default function ActivityProviders() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={error.open}
-        autoHideDuration={6000}
-        onClose={handleErrorClose}
-      >
-        <Alert
-          onClose={handleErrorClose}
-          severity="error"
-          sx={{ width: '100%' }}
-        >
-          {error.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

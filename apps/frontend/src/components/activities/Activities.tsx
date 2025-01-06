@@ -21,10 +21,9 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useError } from '../layout/Layout';
 
 const style = {
   position: 'absolute',
@@ -97,12 +96,13 @@ export default function Activities() {
   });
   const [iframeVisible, setIframeVisible] = useState(false);
   const [iframeUrl, setIframeUrl] = useState('');
-  const [error, setError] = useState({ open: false, message: '' });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
+
+  const { showError } = useError();
 
   const token = () => {
     const token = auth?.user?.access_token;
@@ -116,7 +116,7 @@ export default function Activities() {
     },
     {
       onError: () => {
-        handleError('Failed to load Activity Providers.');
+        showError('Failed to load Activity Providers.');
       },
     },
   );
@@ -152,7 +152,7 @@ export default function Activities() {
     },
     {
       onError: () => {
-        handleError('Failed to load Activities.');
+        showError('Failed to load Activities.');
       },
     },
   );
@@ -198,7 +198,7 @@ export default function Activities() {
           .then(() => handleCloseAdd());
       },
       onError: () => {
-        handleError('Failed to add Activity.');
+        showError('Failed to add Activity.');
       },
     },
   );
@@ -215,7 +215,7 @@ export default function Activities() {
           .then(() => closeDeleteConfirmation());
       },
       onError: () => {
-        handleError('Failed to delete Activity.');
+        showError('Failed to delete Activity.');
       },
     },
   );
@@ -223,10 +223,6 @@ export default function Activities() {
   const mutations = {
     add: () => addActivityMutation.mutate(),
     delete: () => deleteActivityMutation.mutate(),
-  };
-
-  const handleError = (message: string) => {
-    setError({ open: true, message });
   };
 
   const openDeleteConfirmation = (id: string, name: string) => {
@@ -259,14 +255,10 @@ export default function Activities() {
           );
           setIframeVisible(true);
         })
-        .catch(() => handleError('Failed to fetch iframe URL.'));
+        .catch(() => showError('Failed to fetch iframe URL.'));
     } else {
-      handleError('Please select an activity provider.');
+      showError('Please select an activity provider.');
     }
-  };
-
-  const handleErrorClose = () => {
-    setError({ open: false, message: '' });
   };
 
   const isNextDisabled =
@@ -411,20 +403,6 @@ export default function Activities() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={error.open}
-        autoHideDuration={6000}
-        onClose={handleErrorClose}
-      >
-        <Alert
-          onClose={handleErrorClose}
-          severity="error"
-          sx={{ width: '100%' }}
-        >
-          {error.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

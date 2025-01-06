@@ -16,10 +16,9 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useError } from '../layout/Layout';
 
 const style = {
   position: 'absolute',
@@ -72,12 +71,13 @@ export default function IAPs() {
   const [openAdd, setOpenAdd] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [error, setError] = useState({ open: false, message: '' });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
+
+  const { showError } = useError();
 
   const token = () => {
     return auth?.user?.access_token || '';
@@ -93,7 +93,7 @@ export default function IAPs() {
         queryClient.invalidateQueries(['iaps']).then(() => null);
       },
       onError: () => {
-        handleError('Failed to deploy IAP.');
+        showError('Failed to deploy IAP.');
       },
     },
   );
@@ -177,7 +177,7 @@ export default function IAPs() {
     },
     {
       onError: () => {
-        handleError('Failed to load IAPs.');
+        showError('Failed to load IAPs.');
       },
     },
   );
@@ -193,7 +193,7 @@ export default function IAPs() {
           .then(() => navigate(`/edit-iap?id=${iap._id}`));
       },
       onError: () => {
-        handleError('Failed to add IAP.');
+        showError('Failed to add IAP.');
       },
     },
   );
@@ -210,7 +210,7 @@ export default function IAPs() {
           .then(() => closeDeleteConfirmation());
       },
       onError: () => {
-        handleError('Failed to delete IAP.');
+        showError('Failed to delete IAP.');
       },
     },
   );
@@ -218,10 +218,6 @@ export default function IAPs() {
   const mutations = {
     add: () => addIapMutation.mutate(),
     delete: () => deleteIapMutation.mutate(),
-  };
-
-  const handleError = (message: string) => {
-    setError({ open: true, message });
   };
 
   const openDeleteConfirmation = (id: string, name: string) => {
@@ -240,10 +236,6 @@ export default function IAPs() {
     setOpenAdd(false);
     setName('');
     setDescription('');
-  };
-
-  const handleErrorClose = () => {
-    setError({ open: false, message: '' });
   };
 
   const isAddDisabled = !name.trim() || !description.trim();
@@ -334,20 +326,6 @@ export default function IAPs() {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={error.open}
-        autoHideDuration={6000}
-        onClose={handleErrorClose}
-      >
-        <Alert
-          onClose={handleErrorClose}
-          severity="error"
-          sx={{ width: '100%' }}
-        >
-          {error.message}
-        </Alert>
-      </Snackbar>
     </>
   );
 }
