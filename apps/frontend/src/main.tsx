@@ -14,6 +14,7 @@ import {
   redirectUri,
   redirectUriLogout,
 } from './constants';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
 const oAuthConfig = {
   authority: authority,
@@ -25,6 +26,8 @@ const oAuthConfig = {
   scope: 'email openid phone profile roles',
 };
 
+const queryClient = new QueryClient();
+
 const root = createRoot(
   document.getElementById('root') as unknown as HTMLElement,
 );
@@ -32,7 +35,9 @@ const root = createRoot(
 root.render(
   <StrictMode>
     <AuthProvider {...oAuthConfig}>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
     </AuthProvider>
   </StrictMode>,
 );

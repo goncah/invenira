@@ -1,13 +1,13 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { IAPsService } from '../../services/iaps.service';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useAuth } from 'react-oidc-context';
-import { Activity, ActivityKey, Iap } from '@invenira/model';
+import { ActivityKey } from '@invenira/model';
 import { ActivitiesService } from '../../services/activities.service';
-import { FilterableTable, FilterableTableRow } from '@invenira/components';
+import { FilterableTable } from '@invenira/components';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
@@ -15,6 +15,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import {
+  CircularProgress,
   Container,
   Dialog,
   DialogActions,
@@ -24,6 +25,7 @@ import {
   Divider,
   Grid2,
 } from '@mui/material';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 const style = {
   position: 'absolute',
@@ -48,10 +50,7 @@ export default function EditIAP() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const auth = useAuth();
-  const [iap, setIap] = useState<Iap>({} as unknown as Iap);
   const [error, setError] = React.useState({ open: false, message: '' });
-  const [activityList, setActivityList] = useState<Activity[]>([]);
-  const [rows, setRows] = useState<FilterableTableRow<Activity>[]>([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [activityId, setActivityId] = useState<string>('');
   const [confirmRemove, setConfirmRemove] = useState(false);
@@ -68,6 +67,100 @@ export default function EditIAP() {
     return new ActivitiesService();
   }, []);
 
+  const queryClient = useQueryClient();
+
+  const { data: iap, isLoading: isIapLoading } = useQuery(
+    ['iap', searchParams.get('id')],
+    async () => {
+      const token = auth?.user?.access_token || '';
+      const id = searchParams.get('id') || '';
+      return iapService.getOne(id, token);
+    },
+    {
+      onSuccess: (data) => {
+        if (data.isDeployed) {
+          navigate(`/view-iap?id=${searchParams.get('id')}`);
+        }
+      },
+      onError: () => {
+        handleError('Failed to load IAP.');
+      },
+    },
+  );
+
+  const { data: activityList, isLoading: isActivitiesLoading } = useQuery(
+    ['activities'],
+    async () => {
+      const token = auth?.user?.access_token || '';
+      return activityService.getAll(token);
+    },
+    {
+      onError: () => {
+        handleError('Failed to load activities.');
+      },
+    },
+  );
+
+  const addActivityMutation = useMutation(
+    async () => {
+      const token = auth?.user?.access_token || '';
+      await iapService.addActivity(iap?._id || '', activityId, token);
+    },
+    {
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries(['iap'])
+          .then(() => setActivityId(''))
+          .then(() => setOpenAdd(false));
+      },
+      onError: () => {
+        handleError('Failed to add the activity.');
+      },
+    },
+  );
+
+  const removeActivityMutation = useMutation(
+    async () => {
+      const token = auth?.user?.access_token || '';
+      await iapService.removeActivity(
+        iap?._id || '',
+        removeTarget?.id || '',
+        token,
+      );
+    },
+    {
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries(['iap'])
+          .then(() => closeRemoveConfirmation());
+      },
+      onError: () => {
+        handleError('Failed to remove the activity.');
+      },
+    },
+  );
+
+  const deployMutation = useMutation(
+    async () => {
+      const token = auth?.user?.access_token || '';
+      await iapService.deploy(iap?._id || '', token);
+    },
+    {
+      onSuccess: () => {
+        navigate(`/view-iap?id=${iap?._id}`);
+      },
+      onError: () => {
+        handleError('Failed to deploy IAP.');
+      },
+    },
+  );
+
+  const mutations = {
+    add: () => addActivityMutation.mutate(),
+    remove: () => removeActivityMutation.mutate(),
+    deploy: () => deployMutation.mutate(),
+  };
+
   const handleError = useCallback(
     (message: string) => {
       setError({ open: true, message });
@@ -75,121 +168,8 @@ export default function EditIAP() {
     [setError],
   );
 
-  const fetchAndMap = () => {
-    const token = auth?.user?.access_token || '';
-    activityService
-      .getAll(token)
-      .then((activities) => {
-        setActivityList(activities);
-        return activities;
-      })
-      .then((activities) => {
-        setRows(
-          activities
-            .filter((a) => iap.activityIds?.includes(a._id))
-            .map((a, idx) => {
-              return {
-                row: a,
-                actions: [
-                  <Button
-                    key={`btn-${a._id}-${idx}`}
-                    variant="outlined"
-                    color="secondary"
-                    onClick={() => openRemoveConfirmation(a._id, a.name)}
-                    sx={{ marginLeft: 1 }}
-                  >
-                    Remove
-                  </Button>,
-                ],
-              };
-            }),
-        );
-      })
-      .catch(() => handleError('Failed to load IAP activities.'));
-  };
-
   const handleErrorClose = () => {
     setError({ open: false, message: '' });
-  };
-
-  useEffect(() => {
-    const token = auth?.user?.access_token || '';
-    const _id = searchParams.get('id') || '';
-    iapService
-      .getOne(_id, token)
-      .then((data) => {
-        if (data.isDeployed) {
-          navigate(`/view-iap?id=${_id}`);
-        } else {
-          setIap(data as unknown as Iap);
-          return activityService.getAll(token);
-        }
-      })
-      .then((activities) => {
-        if (activities) {
-          setActivityList(activities);
-          return activities;
-        }
-      })
-      .then((activities) => {
-        if (activities) {
-          setRows(
-            activities
-              .filter((a) => iap.activityIds?.includes(a._id))
-              .map((a, idx) => {
-                return {
-                  row: a,
-                  actions: [
-                    <Button
-                      key={`btn-${a._id}-${idx}`}
-                      variant="outlined"
-                      color="secondary"
-                      onClick={() => openRemoveConfirmation(a._id, a.name)}
-                      sx={{ marginLeft: 1 }}
-                    >
-                      Remove
-                    </Button>,
-                  ],
-                };
-              }),
-          );
-        }
-      })
-      .catch(() => handleError('Failed to load IAP.'));
-  }, [
-    activityService,
-    auth?.user?.access_token,
-    handleError,
-    iap.activityIds,
-    iapService,
-    navigate,
-    searchParams,
-  ]);
-
-  const token = () => {
-    return auth?.user?.access_token || '';
-  };
-
-  const handleDeploy = () => {
-    iapService
-      .deploy(iap._id, token())
-      .then(() => navigate(`/view-iap?id=${iap._id}`))
-      .catch(() => handleError('Failed to deploy IAP.'));
-  };
-
-  const handleRemove = () => {
-    if (!removeTarget) return;
-    iapService
-      .removeActivity(iap._id, removeTarget.id, token())
-      .then(
-        () =>
-          (iap.activityIds = iap.activityIds.filter(
-            (i) => i !== removeTarget.id,
-          )),
-      )
-      .then(() => fetchAndMap())
-      .catch(() => handleError('Failed to delete the activity provider.'))
-      .finally(() => closeRemoveConfirmation());
   };
 
   const openRemoveConfirmation = (id: string, name: string) => {
@@ -209,17 +189,30 @@ export default function EditIAP() {
     setActivityId('');
   };
 
-  const handleAdd = () => {
-    iapService
-      .addActivity(iap._id, activityId, token())
-      .then(() => iap.activityIds.push(activityId))
-      .then(() => fetchAndMap())
-      .then(() => setActivityId(''))
-      .then(() => setOpenAdd(false))
-      .catch(() => handleError('Failed to add the activity.'));
-  };
-
   const isAddDisabled = !activityId.trim();
+
+  const rows = activityList
+    ? activityList
+        .filter((a) => iap?.activityIds?.includes(a._id))
+        .map((a, idx) => ({
+          row: a,
+          actions: [
+            <Button
+              key={`btn-${a._id}-${idx}`}
+              variant="outlined"
+              color="secondary"
+              onClick={() => openRemoveConfirmation(a._id, a.name)}
+              sx={{ marginLeft: 1 }}
+            >
+              Remove
+            </Button>,
+          ],
+        }))
+    : [];
+
+  if (isIapLoading || isActivitiesLoading) {
+    return <CircularProgress />;
+  }
 
   return (
     <Grid2>
@@ -229,17 +222,22 @@ export default function EditIAP() {
           component="div"
           sx={{ mr: 2, textAlign: 'center' }}
         >
-          Edit {iap.name} IAP
+          Edit {iap?.name} IAP
         </Typography>
         <Typography component="div" sx={{ mr: 2 }}>
-          <p>IAP ID: {iap._id}</p>
-          <p>IAP Description: {iap.description}</p>
-          <p>Deployed: {iap.isDeployed ? 'Yes' : 'No'}</p>
+          <p>IAP ID: {iap?._id}</p>
+          <p>IAP Description: {iap?.description}</p>
+          <p>Deployed: {iap?.isDeployed ? 'Yes' : 'No'}</p>
         </Typography>
         <Container
           sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
         >
-          <Button variant="contained" color="primary" onClick={handleDeploy}>
+          <Button
+            disabled={iap?.activityIds?.length === 0}
+            variant="contained"
+            color="primary"
+            onClick={mutations.deploy}
+          >
             Deploy
           </Button>
         </Container>
@@ -258,6 +256,19 @@ export default function EditIAP() {
         <Divider>Objectives:</Divider>
       </Grid2>
 
+      <FilterableTable columns={[]} sortBy={'name'} rows={[]} />
+
+      <Container
+        sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          disabled={iap?.activityIds?.length === 0}
+        >
+          Add
+        </Button>
+      </Container>
       <Modal
         open={openAdd}
         onClose={handleCloseAdd}
@@ -276,7 +287,7 @@ export default function EditIAP() {
             onChange={(e) => setActivityId(e.target.value)}
           >
             {activityList
-              .filter((a) => !iap.activityIds.includes(a._id))
+              ?.filter((a) => !iap?.activityIds?.includes(a._id))
               .map((ap) => (
                 <MenuItem key={ap._id} value={ap._id}>
                   {ap.name}
@@ -286,7 +297,7 @@ export default function EditIAP() {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleAdd}
+            onClick={mutations.add}
             disabled={isAddDisabled}
             style={{ marginTop: 16 }}
           >
@@ -315,7 +326,7 @@ export default function EditIAP() {
           <Button onClick={closeRemoveConfirmation} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleRemove} color="error">
+          <Button onClick={mutations.remove} color="error">
             Remove
           </Button>
         </DialogActions>

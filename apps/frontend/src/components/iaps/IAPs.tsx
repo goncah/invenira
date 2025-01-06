@@ -1,14 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { IAPsService } from '../../services/iaps.service';
 import { useAuth } from 'react-oidc-context';
 import { Iap, IapKey } from '@invenira/model';
-import { FilterableTable, FilterableTableRow } from '@invenira/components';
+import { FilterableTable } from '@invenira/components';
 import Button from '@mui/material/Button';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import {
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -18,6 +19,7 @@ import {
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 const style = {
   position: 'absolute',
@@ -65,8 +67,8 @@ export default function IAPs() {
     return new IAPsService();
   }, []);
 
+  const queryClient = useQueryClient();
   const auth = useAuth();
-  const [rows, setRows] = useState<FilterableTableRow<Iap>[]>([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -77,109 +79,149 @@ export default function IAPs() {
     name: string;
   } | null>(null);
 
-  const mapIaps = useCallback(
-    (iaps: Iap[]) => {
+  const token = () => {
+    return auth?.user?.access_token || '';
+  };
+
+  const deployMutation = useMutation(
+    async (id: string) => {
       const token = auth?.user?.access_token || '';
-
-      const handleView = (id: string) => {
-        navigate(`/view-iap?id=${id}`);
-      };
-
-      const handleEdit = (id: string) => {
-        navigate(`/edit-iap?id=${id}`);
-      };
-
-      const handleDeploy = (id: string) => {
-        iapService
-          .deploy(id, token)
-          .then(() =>
-            iapService.getAll(token).then((data) => setRows(mapIaps(data))),
-          )
-          .catch(() => handleError('Failed to deploy IAP.'));
-      };
-
-      return iaps.map((iap) => {
-        const row = {
-          row: iap,
-          actions: [] as React.ReactElement[],
-        };
-
-        if (iap.isDeployed) {
-          row.actions.push(
-            <Button
-              key={`btn-${iap._id}-01`}
-              variant="outlined"
-              color="primary"
-              onClick={() => handleView(iap._id)}
-            >
-              View
-            </Button>,
-          );
-        }
-
-        if (!iap.isDeployed) {
-          row.actions.push(
-            <Button
-              key={`btn-${iap._id}-02`}
-              variant="outlined"
-              color="primary"
-              onClick={() => handleEdit(iap._id)}
-              style={{ marginLeft: row.actions.length > 0 ? 5 : 0 }}
-            >
-              Edit
-            </Button>,
-          );
-        }
-
-        if (!iap.isDeployed && iap.activityIds.length > 0) {
-          row.actions.push(
-            <Button
-              key={`btn-${iap._id}-03`}
-              variant="outlined"
-              color="primary"
-              onClick={() => handleDeploy(iap._id)}
-              style={{ marginLeft: row.actions.length > 0 ? 5 : 0 }}
-            >
-              Deploy
-            </Button>,
-          );
-        }
-
-        row.actions.push(
-          <Button
-            key={`btn-${iap._id}-04`}
-            variant="outlined"
-            color="secondary"
-            onClick={() => openDeleteConfirmation(iap._id, iap.name)}
-            style={{ marginLeft: row.actions.length > 0 ? 5 : 0 }}
-          >
-            Delete
-          </Button>,
-        );
-
-        return row;
-      });
+      await iapService.deploy(id, token);
     },
-    [auth?.user?.access_token, iapService, navigate],
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['iaps']).then(() => null);
+      },
+      onError: () => {
+        handleError('Failed to deploy IAP.');
+      },
+    },
   );
 
-  const token = useCallback(() => {
-    return auth?.user?.access_token || '';
-  }, [auth?.user?.access_token]);
+  const mapIaps = (iaps: Iap[]) => {
+    const handleView = (id: string) => {
+      navigate(`/view-iap?id=${id}`);
+    };
+
+    const handleEdit = (id: string) => {
+      navigate(`/edit-iap?id=${id}`);
+    };
+
+    return iaps.map((iap) => {
+      const row = {
+        row: iap,
+        actions: [] as React.ReactElement[],
+      };
+
+      if (iap.isDeployed) {
+        row.actions.push(
+          <Button
+            key={`btn-${iap._id}-01`}
+            variant="outlined"
+            color="primary"
+            onClick={() => handleView(iap._id)}
+          >
+            View
+          </Button>,
+        );
+      }
+
+      if (!iap.isDeployed) {
+        row.actions.push(
+          <Button
+            key={`btn-${iap._id}-02`}
+            variant="outlined"
+            color="primary"
+            onClick={() => handleEdit(iap._id)}
+            style={{ marginLeft: row.actions.length > 0 ? 5 : 0 }}
+          >
+            Edit
+          </Button>,
+        );
+      }
+
+      if (!iap.isDeployed && iap.activityIds.length > 0) {
+        row.actions.push(
+          <Button
+            key={`btn-${iap._id}-03`}
+            variant="outlined"
+            color="primary"
+            onClick={() => deployMutation.mutate(iap._id)}
+            style={{ marginLeft: row.actions.length > 0 ? 5 : 0 }}
+          >
+            Deploy
+          </Button>,
+        );
+      }
+
+      row.actions.push(
+        <Button
+          key={`btn-${iap._id}-04`}
+          variant="outlined"
+          color="secondary"
+          onClick={() => openDeleteConfirmation(iap._id, iap.name)}
+          style={{ marginLeft: row.actions.length > 0 ? 5 : 0 }}
+        >
+          Delete
+        </Button>,
+      );
+
+      return row;
+    });
+  };
+
+  const { data: iaps, isLoading: isIapsLoading } = useQuery(
+    ['iaps'],
+    async () => {
+      return iapService.getAll(token()).then((iaps) => mapIaps(iaps));
+    },
+    {
+      onError: () => {
+        handleError('Failed to load IAPs.');
+      },
+    },
+  );
+
+  const addIapMutation = useMutation(
+    async () => {
+      return iapService.create({ name, description }, token());
+    },
+    {
+      onSuccess: (iap) => {
+        queryClient
+          .invalidateQueries(['iaps'])
+          .then(() => navigate(`/edit-iap?id=${iap._id}`));
+      },
+      onError: () => {
+        handleError('Failed to add IAP.');
+      },
+    },
+  );
+
+  const deleteIapMutation = useMutation(
+    async () => {
+      if (!deleteTarget) return;
+      return iapService.delete(deleteTarget.id, token());
+    },
+    {
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries(['iaps'])
+          .then(() => closeDeleteConfirmation());
+      },
+      onError: () => {
+        handleError('Failed to delete IAP.');
+      },
+    },
+  );
+
+  const mutations = {
+    add: () => addIapMutation.mutate(),
+    delete: () => deleteIapMutation.mutate(),
+  };
 
   const handleError = (message: string) => {
     setError({ open: true, message });
-  };
-
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    iapService
-      .delete(deleteTarget.id, token())
-      .then(() =>
-        iapService.getAll(token()).then((data) => setRows(mapIaps(data))),
-      )
-      .catch(() => handleError('Failed to delete IAP.'))
-      .finally(() => closeDeleteConfirmation());
   };
 
   const openDeleteConfirmation = (id: string, name: string) => {
@@ -200,47 +242,15 @@ export default function IAPs() {
     setDescription('');
   };
 
-  const handleAdd = () => {
-    iapService
-      .create({ name, description }, token())
-      .then((response) => response._id)
-      .then((id) => {
-        iapService.getAll(token()).then((data) => setRows(mapIaps(data)));
-        return id;
-      })
-      .then((id) => {
-        setName('');
-        return id;
-      })
-      .then((id) => {
-        setDescription('');
-        return id;
-      })
-      .then((id) => {
-        handleCloseAdd();
-        return id;
-      })
-      .then((id) => {
-        setOpenAdd(false);
-        return id;
-      })
-      .then((id) => navigate(`/edit-iap?id=${id}`))
-      .catch(() => handleError('Failed to add IAP.'));
-  };
-
   const handleErrorClose = () => {
     setError({ open: false, message: '' });
   };
 
   const isAddDisabled = !name.trim() || !description.trim();
 
-  useEffect(() => {
-    const token = auth?.user?.access_token || '';
-    iapService
-      .getAll(token)
-      .then((iaps) => setRows(mapIaps(iaps)))
-      .catch(() => handleError('Failed to load IAPs.'));
-  }, [auth?.user?.access_token, iapService, mapIaps]);
+  if (isIapsLoading) {
+    return <CircularProgress />;
+  }
 
   return (
     <>
@@ -251,7 +261,7 @@ export default function IAPs() {
       >
         Inventive Activity Plans
       </Typography>
-      <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
+      <FilterableTable columns={columns} sortBy={'name'} rows={iaps || []} />
 
       <Button
         variant="contained"
@@ -290,7 +300,7 @@ export default function IAPs() {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleAdd}
+            onClick={mutations.add}
             disabled={isAddDisabled}
             style={{ marginTop: 16 }}
           >
@@ -319,7 +329,7 @@ export default function IAPs() {
           <Button onClick={closeDeleteConfirmation} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleDelete} color="error">
+          <Button onClick={mutations.delete} color="error">
             Delete
           </Button>
         </DialogActions>

@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityProvider } from '@invenira/model';
-import { FilterableTable, FilterableTableRow } from '@invenira/components';
+import { FilterableTable } from '@invenira/components';
 import { ActivityProvidersService } from '../../services/activity-providers.service';
 import { useAuth } from 'react-oidc-context';
 import Button from '@mui/material/Button';
@@ -8,6 +8,7 @@ import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import {
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -17,6 +18,7 @@ import {
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 const style = {
   position: 'absolute',
@@ -62,12 +64,12 @@ export default function ActivityProviders() {
     return new ActivityProvidersService();
   }, []);
   const auth = useAuth();
+  const queryClient = useQueryClient();
 
-  const [rows, setRows] = useState<FilterableTableRow<ActivityProvider>[]>([]);
   const [error, setError] = useState({ open: false, message: '' });
   const [openAdd, setOpenAdd] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [formData, setFormData] = useState({ name: '', url: '' });
+  const [createData, setCreateData] = useState({ name: '', url: '' });
   const [editData, setEditData] = useState({ id: '', url: '' });
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -75,92 +77,110 @@ export default function ActivityProviders() {
     name: string;
   } | null>(null);
 
-  const setData = (data: ActivityProvider[]) => {
-    setRows(
-      data.map((row) => {
-        return {
-          row: row,
-          actions: [
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => handleOpenEdit(row._id, row.url)}
-            >
-              Edit
-            </Button>,
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => openDeleteConfirmation(row._id, row.name)}
-              sx={{ marginLeft: 1 }}
-            >
-              Delete
-            </Button>,
-          ],
-        };
-      }),
-    );
-  };
-
-  useEffect(() => {
-    const token = auth?.user?.access_token || '';
-
-    apService
-      .getAll(token)
-      .then((data) => {
-        setRows(
-          data.map((row) => {
-            return {
-              row: row,
-              actions: [
-                <Button
-                  key={`btn-${row._id}-01`}
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => handleOpenEdit(row._id, row.url)}
-                >
-                  Edit
-                </Button>,
-                <Button
-                  key={`btn-${row._id}-02`}
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => openDeleteConfirmation(row._id, row.name)}
-                  sx={{ marginLeft: 1 }}
-                >
-                  Delete
-                </Button>,
-              ],
-            };
-          }),
-        );
-      })
-      .catch(() => handleError('Failed to load Activity Providers.'));
-  }, [apService, auth?.user?.access_token]);
-
   const token = () => {
     return auth?.user?.access_token || '';
   };
 
+  const { data: activityProviders, isLoading: isApLoading } = useQuery(
+    ['activity-providers'],
+    async () => {
+      return apService.getAll(token()).then((data) =>
+        data.map((row, idx) => {
+          return {
+            row: row,
+            actions: [
+              <Button
+                key={`btn-${row._id}-${idx}-01`}
+                variant="outlined"
+                color="primary"
+                onClick={() => handleOpenEdit(row._id, row.url)}
+              >
+                Edit
+              </Button>,
+              <Button
+                key={`btn-${row._id}-${idx}-02`}
+                variant="outlined"
+                color="secondary"
+                onClick={() => openDeleteConfirmation(row._id, row.name)}
+                sx={{ marginLeft: 1 }}
+              >
+                Delete
+              </Button>,
+            ],
+          };
+        }),
+      );
+    },
+    {
+      onError: () => {
+        handleError('Failed to load Activity Providers.');
+      },
+    },
+  );
+
+  const addActivityProviderMutation = useMutation(
+    async () => {
+      const newAp = { ...createData } as ActivityProvider;
+      return apService.create(newAp, token());
+    },
+    {
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries(['activity-providers'])
+          .then(() => setCreateData({ name: '', url: '' }))
+          .then(() => setOpenAdd(false));
+      },
+      onError: () => {
+        handleError('Failed to add Activity Provider.');
+      },
+    },
+  );
+
+  const deleteActivityProviderMutation = useMutation(
+    async () => {
+      if (!deleteTarget) return;
+      return apService.delete(deleteTarget.id, token());
+    },
+    {
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries(['activity-providers'])
+          .then(() => setCreateData({ name: '', url: '' }))
+          .then(() => setOpenAdd(false))
+          .then(() => setDeleteTarget(null))
+          .then(() => setConfirmDelete(false));
+      },
+      onError: () => {
+        handleError('Failed to delete Activity Provider.');
+      },
+    },
+  );
+
+  const editActivityProviderMutation = useMutation(
+    async () => {
+      return apService.update(editData.id, { url: editData.url }, token());
+    },
+    {
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries(['activity-providers'])
+          .then(() => setEditData({ id: '', url: '' }))
+          .then(() => setOpenEdit(false));
+      },
+      onError: () => {
+        handleError('Failed to edit Activity Provider.');
+      },
+    },
+  );
+
+  const mutations = {
+    add: () => addActivityProviderMutation.mutate(),
+    edit: () => editActivityProviderMutation.mutate(),
+    delete: () => deleteActivityProviderMutation.mutate(),
+  };
+
   const handleError = (message: string) => {
     setError({ open: true, message });
-  };
-
-  const handleEdit = (id: string, url: string) => {
-    apService
-      .update(id, { url }, token())
-      .then(() => apService.getAll(token()).then((data) => setData(data)))
-      .then(() => setOpenEdit(false))
-      .catch(() => handleError('Failed to update the activity provider.'));
-  };
-
-  const handleDelete = () => {
-    if (!deleteTarget) return;
-    apService
-      .delete(deleteTarget.id, token())
-      .then(() => apService.getAll(token()).then((data) => setData(data)))
-      .catch(() => handleError('Failed to delete the activity provider.'))
-      .finally(() => closeDeleteConfirmation());
   };
 
   const openDeleteConfirmation = (id: string, name: string) => {
@@ -173,10 +193,9 @@ export default function ActivityProviders() {
     setConfirmDelete(false);
   };
 
-  const handleOpenAdd = () => setOpenAdd(true);
   const handleCloseAdd = () => {
     setOpenAdd(false);
-    setFormData({ name: '', url: '' });
+    setCreateData({ name: '', url: '' });
   };
 
   const handleOpenEdit = (id: string, url: string) => {
@@ -188,7 +207,7 @@ export default function ActivityProviders() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setCreateData({ ...createData, [name]: value });
   };
 
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,21 +215,15 @@ export default function ActivityProviders() {
     setEditData({ ...editData, url: value });
   };
 
-  const handleAdd = () => {
-    const newEntry = { ...formData };
-    apService
-      .create(newEntry, token())
-      .then(() => apService.getAll(token()).then((data) => setData(data)))
-      .then(() => setFormData({ name: '', url: '' }))
-      .then(() => handleCloseAdd())
-      .catch(() => handleError('Failed to add the activity provider.'));
-  };
-
   const handleErrorClose = () => {
     setError({ open: false, message: '' });
   };
 
-  const isAddDisabled = !formData.name.trim() || !formData.url.trim();
+  const isAddDisabled = !createData.name.trim() || !createData.url.trim();
+
+  if (isApLoading) {
+    return <CircularProgress />;
+  }
 
   return (
     <>
@@ -221,13 +234,17 @@ export default function ActivityProviders() {
       >
         Activity Providers
       </Typography>
-      <FilterableTable columns={columns} sortBy={'name'} rows={rows} />
+      <FilterableTable
+        columns={columns}
+        sortBy={'name'}
+        rows={activityProviders || []}
+      />
 
       <Button
         variant="contained"
         color="primary"
         sx={{ marginTop: 2, float: 'right' }}
-        onClick={handleOpenAdd}
+        onClick={() => setOpenAdd(true)}
       >
         Add
       </Button>
@@ -246,7 +263,7 @@ export default function ActivityProviders() {
             margin="normal"
             label="Name"
             name="name"
-            value={formData.name}
+            value={createData.name}
             onChange={handleInputChange}
           />
           <TextField
@@ -254,13 +271,13 @@ export default function ActivityProviders() {
             margin="normal"
             label="URL"
             name="url"
-            value={formData.url}
+            value={createData.url}
             onChange={handleInputChange}
           />
           <Button
             variant="contained"
             color="primary"
-            onClick={handleAdd}
+            onClick={mutations.add}
             disabled={isAddDisabled}
             style={{ marginTop: 16 }}
           >
@@ -297,7 +314,7 @@ export default function ActivityProviders() {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handleEdit(editData.id, editData.url)}
+            onClick={mutations.edit}
             sx={{ marginTop: 2 }}
           >
             Save
@@ -326,7 +343,7 @@ export default function ActivityProviders() {
           <Button onClick={closeDeleteConfirmation} color="primary">
             Cancel
           </Button>
-          <Button onClick={handleDelete} color="error">
+          <Button onClick={mutations.delete} color="error">
             Delete
           </Button>
         </DialogActions>
