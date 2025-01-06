@@ -124,10 +124,11 @@ export default function Activities() {
   const { data: activities, isLoading: isAtLoading } = useQuery(
     ['activities'],
     async () => {
+      const ats = await apService.getAll(token());
       return activityService.getAll(token()).then((activities) =>
         activities.map((activity) => {
           // eslint-disable-next-line
-          (activity as any).ap = activityProviders?.find(
+          (activity as any).ap = ats.find(
             (ap) => ap._id === activity.activityProviderId,
           )?.name;
 
