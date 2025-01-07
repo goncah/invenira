@@ -49,7 +49,7 @@ export class IapsService {
       .exec();
   }
 
-  async deploy(id: string): Promise<Iap> {
+  async deploy(id: string, baseUrl: string): Promise<Iap> {
     const iap = await this.findOne(id);
 
     if (!iap) {
@@ -64,7 +64,14 @@ export class IapsService {
           .reduce(async (p, _id) => {
             await p;
             const url = await this.activitiesService.deploy(_id.toString());
-            iap.deployUrls.set(_id.toString(), url);
+            const data = btoa(JSON.stringify({ activityUrl: url }));
+            const provideUrl =
+              baseUrl +
+              '/activities/' +
+              _id.toString() +
+              '/provide?data=' +
+              data;
+            iap.deployUrls.set(_id.toString(), provideUrl);
           }, Promise.resolve())
           .then(async () => {
             iap.isDeployed = true;

@@ -6,8 +6,10 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { FastifyRequest } from 'fastify';
 import { IapsService } from './iaps.service';
 import { CreateIapDto } from './dto/create-iap.dto';
 import { UpdateIapDto } from './dto/update-iap.dto';
@@ -53,8 +55,8 @@ export class IapsController {
 
   @Roles(...INSTRUCTOR_ROLES)
   @Patch(':id/deploy')
-  async deploy(@Param('id') id: string) {
-    return this.iapsService.deploy(id);
+  async deploy(@Param('id') id: string, @Req() req: FastifyRequest) {
+    return this.iapsService.deploy(id, req.protocol + '://' + req.hostname);
   }
 
   @Roles(...INSTRUCTOR_ROLES)

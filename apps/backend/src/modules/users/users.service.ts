@@ -12,7 +12,14 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    return this.userModel.create(createUserDto);
+    return this.userModel
+      .findOne({ lmsStudentId: createUserDto.lmsStudentId })
+      .then((user) => {
+        if (!user) {
+          return this.userModel.create(createUserDto);
+        }
+        return user;
+      });
   }
 
   async findAll(): Promise<User[]> {

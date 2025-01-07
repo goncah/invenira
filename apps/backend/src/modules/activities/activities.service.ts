@@ -12,9 +12,14 @@ import { ConfigInterfaceDto } from './dto/config-interface.dto';
 import { EventBusService } from '../utils/event-bus-service';
 import { Activity, ActivityProvider } from '@invenira/model';
 import { CreateActivityDto } from './dto/create-activity.dto';
+import { AxiosInstance } from 'axios';
+import { HttpService } from '@nestjs/axios';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ActivitiesService {
+  private readonly axios: AxiosInstance;
+
   constructor(
     @InjectModel(ActivityEntity.name)
     private activityModel: Model<ActivityEntity>,
@@ -22,7 +27,11 @@ export class ActivitiesService {
     private readonly activityProviderModel: Model<ActivityProviderEntity>,
     private readonly activityProvidersClient: ActivityProvidersClient,
     private eventBus: EventBusService,
-  ) {}
+    private readonly httpService: HttpService,
+    private readonly usersService: UsersService,
+  ) {
+    this.axios = this.httpService.axiosRef as AxiosInstance; // required for ncc
+  }
 
   async createActivity(
     createActivityDto: CreateActivityDto,
@@ -154,5 +163,38 @@ export class ActivitiesService {
     const activity = await this.findOneActivity(activityId);
     const ap = await this.findOneActivityProvider(activity.activityProviderId);
     return this.activityProvidersClient.deployActivity(ap.url, activityId);
+  }
+
+  async provide(
+    activityId: string,
+    userId: string,
+    data: any,
+  ): Promise<string> {
+    if (!activityId || !userId || !data) {
+      throw new BadRequestException('Invalid Request!');
+    }
+
+    const activity = await this.findOneActivity(activityId);
+
+    if (!activity) {
+      throw new BadRequestException('Invalid Activity!');
+    }
+
+    let activityUrl: string;
+
+    try {
+      activityUrl = JSON.parse(atob(data)).activityUrl;
+    } catch (e) {
+      throw new BadRequestException('Invalid Data!');
+    }
+
+    const user = await this.usersService.create({ lmsStudentId: userId });
+
+    return this.activityProvidersClient.provide(
+      activityUrl,
+      activity._id,
+      user._id.toString(),
+      activity.parameters,
+    );
   }
 }

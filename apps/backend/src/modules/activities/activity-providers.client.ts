@@ -98,4 +98,21 @@ export class ActivityProvidersClient {
         }
       });
   }
+
+  async provide(
+    url: string,
+    activityId: string,
+    userId: string,
+    params: Map<string, unknown>,
+  ): Promise<string> {
+    return this.axios
+      .post<Record<string, string>>(url, {
+        activityID: activityId,
+        'Inven!RAstdID': userId,
+        json_params: params,
+      })
+      .then((res) => {
+        return res.data['deployURL'];
+      });
+  }
 }

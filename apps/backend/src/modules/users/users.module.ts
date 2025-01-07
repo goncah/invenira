@@ -1,8 +1,9 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
+import { logger } from '../../invenira.logger';
 
 @Module({
   imports: [
@@ -10,11 +11,13 @@ import { User, UserSchema } from './entities/user.entity';
       {
         name: User.name,
         useFactory: () => {
-          const logger = new Logger('ActivityProviderSchema');
           const schema = UserSchema;
 
-          schema.pre('save', (_: any, docs: any) => {
-            logger.log(`Saving ${docs}`);
+          schema.post('save', (next: any) => {
+            logger.debug(
+              `Saving User ${JSON.stringify(next._doc)}`,
+              'Mongoose',
+            );
           });
 
           return schema;
@@ -24,5 +27,6 @@ import { User, UserSchema } from './entities/user.entity';
   ],
   controllers: [UsersController],
   providers: [UsersService],
+  exports: [UsersService],
 })
 export class UsersModule {}

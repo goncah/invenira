@@ -7,6 +7,8 @@ import {
   Param,
   Patch,
   Post,
+  Query,
+  Redirect,
   UseGuards,
 } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
@@ -19,6 +21,7 @@ import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
 import { Activity } from '@invenira/model';
 import { CreateActivityDto } from './dto/create-activity.dto';
+import { Public } from '../auth/public';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activities')
@@ -83,5 +86,18 @@ export class ActivitiesController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Activity> {
     return this.activitiesService.removeActivity(id);
+  }
+
+  @Public()
+  @Get(':id/provide')
+  @Redirect('', 302)
+  async provide(
+    @Param('id') id: string,
+    @Query('userId') userId: string,
+    @Query('data') data: any,
+  ) {
+    return this.activitiesService.provide(id, userId, data).then((url) => {
+      return { url };
+    });
   }
 }
