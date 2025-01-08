@@ -10,14 +10,9 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import { useAuth } from 'react-oidc-context';
 import { styled, Switch } from '@mui/material';
-import { Theme } from '@emotion/react';
 import { useTheme } from './Layout';
 
-export interface NavbarProps {
-  theme: Theme;
-}
-
-export default function Navbar(props: NavbarProps) {
+export default function Navbar() {
   const auth = useAuth();
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 
@@ -95,68 +90,77 @@ export default function Navbar(props: NavbarProps) {
             Inven!RA
           </Typography>
         </Button>
-        <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-          <Button color="inherit" href="/iaps">
-            IAPs
-          </Button>
-          <Button color="inherit" href="/activities">
-            Activities
-          </Button>
-          <Button color="inherit" href="/activity-providers">
-            Activity Providers
-          </Button>
-        </Box>
-        <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={handleMenuOpen}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleMenuClose} component="a" href="/iaps">
-              IAPs
-            </MenuItem>
-            <MenuItem
-              onClick={handleMenuClose}
-              component="a"
-              href="/activities"
-            >
-              Activities
-            </MenuItem>
-            <MenuItem
-              onClick={handleMenuClose}
-              component="a"
-              href="/activity-providers"
-            >
-              Activity Providers
-            </MenuItem>
-          </Menu>
-        </Box>
-        <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
-          {auth.user ? (
-            <>
-              <Typography variant="body1" sx={{ mr: 2 }}>
-                Logged in as {auth.user.profile.name}
-              </Typography>
-              <Button color="inherit" onClick={() => auth.signoutRedirect()}>
-                Log off
+        {auth.isAuthenticated ? (
+          <>
+            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+              <Button color="inherit" href="/iaps">
+                IAPs
               </Button>
-            </>
-          ) : null}
-          <MaterialUISwitch
-            sx={{ m: 1 }}
-            checked={mode === 'dark'}
-            onChange={toggleTheme}
-          />
-        </Box>
+              <Button color="inherit" href="/activities">
+                Activities
+              </Button>
+              <Button color="inherit" href="/activity-providers">
+                Activity Providers
+              </Button>
+            </Box>
+            <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+              <IconButton
+                size="large"
+                edge="start"
+                color="inherit"
+                aria-label="menu"
+                onClick={handleMenuOpen}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={handleMenuClose} component="a" href="/iaps">
+                  IAPs
+                </MenuItem>
+                <MenuItem
+                  onClick={handleMenuClose}
+                  component="a"
+                  href="/activities"
+                >
+                  Activities
+                </MenuItem>
+                <MenuItem
+                  onClick={handleMenuClose}
+                  component="a"
+                  href="/activity-providers"
+                >
+                  Activity Providers
+                </MenuItem>
+              </Menu>
+            </Box>
+            <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+              {auth.user ? (
+                <>
+                  <Typography variant="body1" sx={{ mr: 2 }}>
+                    Logged in as {auth.user.profile.name}
+                  </Typography>
+                  <Button
+                    color="inherit"
+                    onClick={() => auth.signoutRedirect()}
+                  >
+                    Log off
+                  </Button>
+                </>
+              ) : null}
+            </Box>
+          </>
+        ) : (
+          ''
+        )}
+        <MaterialUISwitch
+          sx={{ m: 1 }}
+          checked={mode === 'dark'}
+          onChange={toggleTheme}
+        />
       </Toolbar>
     </AppBar>
   );

@@ -9,12 +9,19 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { GlobalStyles, Grid2, ThemeProvider, Typography } from '@mui/material';
+import {
+  CircularProgress,
+  GlobalStyles,
+  Grid2,
+  ThemeProvider,
+  Typography,
+} from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import Button from '@mui/material/Button';
+import { useAuth } from 'react-oidc-context';
 
 interface ThemeContextProps {
   mode: PaletteMode;
@@ -36,6 +43,8 @@ export const useError = () => useContext(ErrorContext);
 export const useTheme = () => useContext(ThemeContext);
 
 export default function Layout() {
+  const auth = useAuth();
+
   const [error, setError] = useState({ open: false, message: '' });
 
   const handleErrorClose = () => {
@@ -87,7 +96,7 @@ export default function Layout() {
             }}
           />
           <header>
-            <Navbar theme={theme} />
+            <Navbar />
           </header>
           <main>
             <Grid2
@@ -99,35 +108,59 @@ export default function Layout() {
               sx={{ minHeight: '100vh' }}
             >
               <Grid2>
-                <QueryErrorResetBoundary>
-                  {({ reset }) => (
-                    <ErrorBoundary
-                      onReset={reset}
-                      fallbackRender={({ resetErrorBoundary, error }) => (
-                        <Typography
-                          variant="h5"
-                          component="div"
-                          sx={{ textAlign: 'center' }}
-                        >
-                          {error.message.toString()}
-                          <br />
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={() =>
-                              startTransition(() => resetErrorBoundary())
-                            }
-                            sx={{ mt: 2 }}
+                {auth.isAuthenticated ? (
+                  <QueryErrorResetBoundary>
+                    {({ reset }) => (
+                      <ErrorBoundary
+                        onReset={reset}
+                        fallbackRender={({ resetErrorBoundary, error }) => (
+                          <Typography
+                            variant="h5"
+                            component="div"
+                            sx={{ textAlign: 'center' }}
                           >
-                            Retry
-                          </Button>
-                        </Typography>
-                      )}
-                    >
-                      <Outlet />
-                    </ErrorBoundary>
-                  )}
-                </QueryErrorResetBoundary>
+                            {error.message.toString()}
+                            <br />
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              onClick={() =>
+                                startTransition(() => resetErrorBoundary())
+                              }
+                              sx={{ mt: 2 }}
+                            >
+                              Retry
+                            </Button>
+                          </Typography>
+                        )}
+                      >
+                        <Outlet />
+                      </ErrorBoundary>
+                    )}
+                  </QueryErrorResetBoundary>
+                ) : (
+                  <Typography
+                    variant="h4"
+                    component="div"
+                    sx={{ textAlign: 'center' }}
+                  >
+                    Inven!RA
+                    <br />
+                    {auth.isLoading ? (
+                      <CircularProgress />
+                    ) : auth.error ? (
+                      'Error'
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => auth.signinRedirect()}
+                      >
+                        Login
+                      </Button>
+                    )}
+                  </Typography>
+                )}
               </Grid2>
             </Grid2>
             <Snackbar
