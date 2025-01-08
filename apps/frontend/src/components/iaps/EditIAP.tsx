@@ -22,7 +22,7 @@ import {
   Divider,
   Grid2,
 } from '@mui/material';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
 import MenuItem from '@mui/material/MenuItem';
 
@@ -56,6 +56,7 @@ export default function EditIAP() {
     id: string;
     name: string;
   } | null>(null);
+  const [iapId] = useState<string>(searchParams.get('id') || '');
   const { showError } = useError();
 
   const iapService = useMemo(() => {
@@ -66,106 +67,114 @@ export default function EditIAP() {
     return new ActivitiesService();
   }, []);
 
+  const token = () => {
+    return auth?.user?.access_token || '';
+  };
+
   const queryClient = useQueryClient();
 
-  const { data: iaps, isLoading: isIapsLoading } = useQuery(
-    ['iaps', searchParams.get('id')],
-    async () => {
-      const token = auth?.user?.access_token || '';
-      return iapService.getAll(token);
+  const {
+    data: iaps,
+    isLoading: isIapsLoading,
+    error: iapsError,
+  } = useQuery({
+    queryKey: ['iaps'],
+    queryFn: async () => {
+      return iapService.getAll(token());
     },
-    {
-      onError: () => {
-        showError('Failed to load IAP.');
-      },
-    },
-  );
+  });
 
-  const { data: iap, isLoading: isIapLoading } = useQuery(
-    ['iap', searchParams.get('id')],
-    async () => {
-      const token = auth?.user?.access_token || '';
-      const id = searchParams.get('id') || '';
-      return iapService.getOne(id, token);
-    },
-    {
-      onSuccess: (data) => {
-        if (data.isDeployed) {
-          navigate(`/view-iap?id=${searchParams.get('id')}`);
-        }
-      },
-      onError: () => {
-        showError('Failed to load IAP.');
-      },
-    },
-  );
+  if (iapsError) {
+    throw iapsError;
+  }
 
-  const { data: activityList, isLoading: isActivitiesLoading } = useQuery(
-    ['activities'],
-    async () => {
-      const token = auth?.user?.access_token || '';
-      return activityService.getAll(token);
-    },
-    {
-      onError: () => {
-        showError('Failed to load activities.');
-      },
-    },
-  );
+  const {
+    data: iap,
+    isLoading: isIapLoading,
+    error: iapError,
+  } = useQuery({
+    queryKey: ['iap', iapId],
+    queryFn: async () => {
+      const iap = await iapService.getOne(iapId, token());
 
-  const addActivityMutation = useMutation(
-    async () => {
-      const token = auth?.user?.access_token || '';
-      await iapService.addActivity(iap?._id || '', activityId, token);
-    },
-    {
-      onSuccess: () => {
-        queryClient
-          .invalidateQueries(['iap'])
-          .then(() => setActivityId(''))
-          .then(() => setOpenAdd(false));
-      },
-      onError: () => {
-        showError('Failed to add the activity.');
-      },
-    },
-  );
+      if (!iap) {
+        throw new Error('Invalid IAP id');
+      }
 
-  const removeActivityMutation = useMutation(
-    async () => {
-      const token = auth?.user?.access_token || '';
+      if (iap.isDeployed) {
+        navigate(`/view-iap?id=${iapId}`);
+      }
+
+      return iap;
+    },
+  });
+
+  if (iapError) {
+    throw iapError;
+  }
+
+  const {
+    data: activityList,
+    isLoading: isActivitiesLoading,
+    error: atError,
+  } = useQuery({
+    queryKey: ['activities'],
+    queryFn: async () => {
+      return activityService.getAll(token());
+    },
+  });
+
+  if (atError) {
+    throw atError;
+  }
+
+  const addActivityMutation = useMutation({
+    mutationFn: async () => {
+      await iapService.addActivity(iap?._id || '', activityId, token());
+    },
+
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['iap'] })
+        .then(() => setActivityId(''))
+        .then(() => setOpenAdd(false));
+    },
+    onError: () => {
+      showError('Failed to add the activity.');
+    },
+  });
+
+  const removeActivityMutation = useMutation({
+    mutationFn: async () => {
       await iapService.removeActivity(
         iap?._id || '',
         removeTarget?.id || '',
-        token,
+        token(),
       );
     },
-    {
-      onSuccess: () => {
-        queryClient
-          .invalidateQueries(['iap'])
-          .then(() => closeRemoveConfirmation());
-      },
-      onError: () => {
-        showError('Failed to remove the activity.');
-      },
-    },
-  );
 
-  const deployMutation = useMutation(
-    async () => {
-      const token = auth?.user?.access_token || '';
-      await iapService.deploy(iap?._id || '', token);
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['iap'] })
+        .then(() => closeRemoveConfirmation());
     },
-    {
-      onSuccess: () => {
-        navigate(`/view-iap?id=${iap?._id}`);
-      },
-      onError: () => {
-        showError('Failed to deploy IAP.');
-      },
+    onError: () => {
+      showError('Failed to remove the activity.');
     },
-  );
+  });
+
+  const deployMutation = useMutation({
+    mutationFn: async () => {
+      await iapService.deploy(iap?._id || '', token());
+    },
+
+    onSuccess: () => {
+      navigate(`/view-iap?id=${iap?._id}`);
+    },
+    onError: () => {
+      showError('Failed to deploy IAP.');
+    },
+  });
 
   const mutations = {
     add: () => addActivityMutation.mutate(),

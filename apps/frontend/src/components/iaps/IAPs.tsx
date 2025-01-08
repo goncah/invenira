@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
 
 const style = {
@@ -83,20 +83,19 @@ export default function IAPs() {
     return auth?.user?.access_token || '';
   };
 
-  const deployMutation = useMutation(
-    async (id: string) => {
+  const deployMutation = useMutation({
+    mutationFn: async (id: string) => {
       const token = auth?.user?.access_token || '';
       await iapService.deploy(id, token);
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['iaps']).then(() => null);
-      },
-      onError: () => {
-        showError('Failed to deploy IAP.');
-      },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['iaps'] }).then(() => null);
     },
-  );
+    onError: () => {
+      showError('Failed to deploy IAP.');
+    },
+  });
 
   const mapIaps = (iaps: Iap[]) => {
     const handleView = (id: string) => {
@@ -170,50 +169,51 @@ export default function IAPs() {
     });
   };
 
-  const { data: iaps, isLoading: isIapsLoading } = useQuery(
-    ['iaps'],
-    async () => {
+  const {
+    data: iaps,
+    isLoading: isIapsLoading,
+    error: iapError,
+  } = useQuery({
+    queryKey: ['iaps'],
+    queryFn: async () => {
       return iapService.getAll(token()).then((iaps) => mapIaps(iaps));
     },
-    {
-      onError: () => {
-        showError('Failed to load IAPs.');
-      },
-    },
-  );
+  });
 
-  const addIapMutation = useMutation(
-    async () => {
+  if (iapError) {
+    throw iapError;
+  }
+
+  const addIapMutation = useMutation({
+    mutationFn: async () => {
       return iapService.create({ name, description }, token());
     },
-    {
-      onSuccess: (iap) => {
-        queryClient
-          .invalidateQueries(['iaps'])
-          .then(() => navigate(`/edit-iap?id=${iap._id}`));
-      },
-      onError: () => {
-        showError('Failed to add IAP.');
-      },
-    },
-  );
 
-  const deleteIapMutation = useMutation(
-    async () => {
+    onSuccess: (iap) => {
+      queryClient
+        .invalidateQueries({ queryKey: ['iaps'] })
+        .then(() => navigate(`/edit-iap?id=${iap._id}`));
+    },
+    onError: () => {
+      showError('Failed to add IAP.');
+    },
+  });
+
+  const deleteIapMutation = useMutation({
+    mutationFn: async () => {
       if (!deleteTarget) return;
       return iapService.delete(deleteTarget.id, token());
     },
-    {
-      onSuccess: () => {
-        queryClient
-          .invalidateQueries(['iaps'])
-          .then(() => closeDeleteConfirmation());
-      },
-      onError: () => {
-        showError('Failed to delete IAP.');
-      },
+
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['iaps'] })
+        .then(() => closeDeleteConfirmation());
     },
-  );
+    onError: () => {
+      showError('Failed to delete IAP.');
+    },
+  });
 
   const mutations = {
     add: () => addIapMutation.mutate(),

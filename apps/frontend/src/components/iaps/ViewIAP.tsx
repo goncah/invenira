@@ -2,10 +2,9 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import React, { useMemo, useState } from 'react';
 import { CircularProgress, Divider, Grid2, Popover } from '@mui/material';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from 'react-oidc-context';
 import { IAPsService } from '../../services/iaps.service';
-import { useError } from '../layout/Layout';
 import { ActivitiesService } from '../../services/activities.service';
 import { FilterableTable } from '@invenira/components';
 import { ActivityKey } from '@invenira/model';
@@ -23,8 +22,8 @@ export default function ViewIAP() {
   const [url, setUrl] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [iapId] = useState<string>(searchParams.get('id') || '');
   const auth = useAuth();
-  const { showError } = useError();
 
   const iapService = useMemo(() => {
     return new IAPsService();
@@ -34,32 +33,44 @@ export default function ViewIAP() {
     return new ActivitiesService();
   }, []);
 
-  const { data: iap, isLoading: isIapLoading } = useQuery(
-    ['iap', searchParams.get('id')],
-    async () => {
-      const token = auth?.user?.access_token || '';
-      const id = searchParams.get('id') || '';
-      return iapService.getOne(id, token);
-    },
-    {
-      onSuccess: (data) => {
-        if (!data.isDeployed) {
-          navigate(`/edit-iap?id=${searchParams.get('id')}`);
-        }
-      },
-      onError: () => {
-        showError('Failed to load IAP.');
-      },
-    },
-  );
+  const token = () => {
+    return auth?.user?.access_token || '';
+  };
 
-  const { data: activityList, isLoading: isActivitiesLoading } = useQuery(
-    ['activities'],
-    async () => {
-      const token = auth?.user?.access_token || '';
-      const id = searchParams.get('id') || '';
-      const _iap = await iapService.getOne(id, token);
-      return activityService.getAll(token).then((data) =>
+  const {
+    data: iap,
+    isLoading: isIapLoading,
+    error: iapError,
+  } = useQuery({
+    queryKey: ['iap', iapId],
+    queryFn: async () => {
+      const iap = await iapService.getOne(iapId, token());
+
+      if (!iap) {
+        throw new Error('Invalid IAP id');
+      }
+
+      if (!iap.isDeployed) {
+        navigate(`/edit-iap?id=${iapId}`);
+      }
+
+      return iap;
+    },
+  });
+
+  if (iapError) {
+    throw iapError;
+  }
+
+  const {
+    data: activityList,
+    isLoading: isActivitiesLoading,
+    error: atError,
+  } = useQuery({
+    queryKey: ['activities', iapId],
+    queryFn: async () => {
+      const _iap = await iapService.getOne(iapId, token());
+      return activityService.getAll(token()).then((data) =>
         data
           .filter((a) => _iap.activityIds?.includes(a._id))
           .map((a, idx) => ({
@@ -85,12 +96,11 @@ export default function ViewIAP() {
           })),
       );
     },
-    {
-      onError: () => {
-        showError('Failed to load activities.');
-      },
-    },
-  );
+  });
+
+  if (atError) {
+    throw atError;
+  }
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);

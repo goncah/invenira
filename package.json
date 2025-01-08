@@ -4,9 +4,9 @@
   "license": "MIT",
   "scripts": {
     "backend:dev": "nx run backend:serve",
-    "backend:build": "nx build backend && ncc build dist/apps/backend/main.js -m -C -o dist/apps/backend --target es2024 && mv dist/apps/backend/index.js dist/apps/backend/main.js",
+    "backend:build": "nx build backend --verbose && ncc build dist/apps/backend/main.js -m -C -o dist/apps/backend --target es2024 && mv dist/apps/backend/index.js dist/apps/backend/main.js",
     "frontend:dev": "nx run frontend:serve",
-    "frontend:build": "nx run frontend:build"
+    "frontend:build": "nx build frontend --verbose"
   },
   "private": true,
   "dependencies": {
@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^10.0.2",
     "@nestjs/platform-fastify": "^10.4.13",
     "@nestjs/swagger": "^8.1.0",
+    "@tanstack/react-query": "^5.62.16",
     "@types/react-cytoscapejs": "^1.2.5",
     "@types/react-datepicker": "^6.2.0",
     "axios": "^1.7.9",
@@ -42,8 +43,8 @@
     "react": "^18.3.1",
     "react-datepicker": "^7.5.0",
     "react-dom": "^18.3.1",
+    "react-error-boundary": "^5.0.0",
     "react-oidc-context": "^3.2.0",
-    "react-query": "^3.39.3",
     "react-router-dom": "^7.0.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1"
@@ -73,6 +74,7 @@
     "@swc/cli": "~0.3.12",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
+    "@tanstack/eslint-plugin-query": "^5.62.16",
     "@testing-library/react": "15.0.6",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.12",

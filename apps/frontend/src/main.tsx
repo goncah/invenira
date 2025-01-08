@@ -14,7 +14,7 @@ import {
   redirectUri,
   redirectUriLogout,
 } from './constants';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const oAuthConfig = {
   authority: authority,

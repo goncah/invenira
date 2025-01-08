@@ -2,10 +2,19 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './NavBar';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, PaletteMode } from '@mui/material/styles';
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { GlobalStyles, Grid2, ThemeProvider } from '@mui/material';
+import React, {
+  createContext,
+  startTransition,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import { GlobalStyles, Grid2, ThemeProvider, Typography } from '@mui/material';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
+import { QueryErrorResetBoundary } from '@tanstack/react-query';
+import { ErrorBoundary } from 'react-error-boundary';
+import Button from '@mui/material/Button';
 
 interface ThemeContextProps {
   mode: PaletteMode;
@@ -90,7 +99,35 @@ export default function Layout() {
               sx={{ minHeight: '100vh' }}
             >
               <Grid2>
-                <Outlet />
+                <QueryErrorResetBoundary>
+                  {({ reset }) => (
+                    <ErrorBoundary
+                      onReset={reset}
+                      fallbackRender={({ resetErrorBoundary, error }) => (
+                        <Typography
+                          variant="h5"
+                          component="div"
+                          sx={{ textAlign: 'center' }}
+                        >
+                          {error.message.toString()}
+                          <br />
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() =>
+                              startTransition(() => resetErrorBoundary())
+                            }
+                            sx={{ mt: 2 }}
+                          >
+                            Retry
+                          </Button>
+                        </Typography>
+                      )}
+                    >
+                      <Outlet />
+                    </ErrorBoundary>
+                  )}
+                </QueryErrorResetBoundary>
               </Grid2>
             </Grid2>
             <Snackbar

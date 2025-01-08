@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from '@mui/material';
 import Typography from '@mui/material/Typography';
-import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
 
 const style = {
@@ -80,9 +80,13 @@ export default function ActivityProviders() {
     return auth?.user?.access_token || '';
   };
 
-  const { data: activityProviders, isLoading: isApLoading } = useQuery(
-    ['activity-providers'],
-    async () => {
+  const {
+    isLoading: isApLoading,
+    data: activityProviders,
+    error: apError,
+  } = useQuery({
+    queryKey: ['activity-providers'],
+    queryFn: async () => {
       return apService.getAll(token()).then((data) =>
         data.map((row, idx) => {
           return {
@@ -110,67 +114,60 @@ export default function ActivityProviders() {
         }),
       );
     },
-    {
-      onError: () => {
-        showError('Failed to load Activity Providers.');
-      },
-    },
-  );
+  });
 
-  const addActivityProviderMutation = useMutation(
-    async () => {
+  if (apError) {
+    throw apError;
+  }
+
+  const addActivityProviderMutation = useMutation({
+    mutationFn: async () => {
       const newAp = { ...createData } as ActivityProvider;
       return apService.create(newAp, token());
     },
-    {
-      onSuccess: () => {
-        queryClient
-          .invalidateQueries(['activity-providers'])
-          .then(() => setCreateData({ name: '', url: '' }))
-          .then(() => setOpenAdd(false));
-      },
-      onError: () => {
-        showError('Failed to add Activity Provider.');
-      },
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['activity-providers'] })
+        .then(() => setCreateData({ name: '', url: '' }))
+        .then(() => setOpenAdd(false));
     },
-  );
+    onError: () => {
+      showError('Failed to add Activity Provider.');
+    },
+  });
 
-  const deleteActivityProviderMutation = useMutation(
-    async () => {
+  const deleteActivityProviderMutation = useMutation({
+    mutationFn: async () => {
       if (!deleteTarget) return;
       return apService.delete(deleteTarget.id, token());
     },
-    {
-      onSuccess: () => {
-        queryClient
-          .invalidateQueries(['activity-providers'])
-          .then(() => setCreateData({ name: '', url: '' }))
-          .then(() => setOpenAdd(false))
-          .then(() => setDeleteTarget(null))
-          .then(() => setConfirmDelete(false));
-      },
-      onError: () => {
-        showError('Failed to delete Activity Provider.');
-      },
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['activity-providers'] })
+        .then(() => setCreateData({ name: '', url: '' }))
+        .then(() => setOpenAdd(false))
+        .then(() => setDeleteTarget(null))
+        .then(() => setConfirmDelete(false));
     },
-  );
+    onError: () => {
+      showError('Failed to delete Activity Provider.');
+    },
+  });
 
-  const editActivityProviderMutation = useMutation(
-    async () => {
+  const editActivityProviderMutation = useMutation({
+    mutationFn: async () => {
       return apService.update(editData.id, { url: editData.url }, token());
     },
-    {
-      onSuccess: () => {
-        queryClient
-          .invalidateQueries(['activity-providers'])
-          .then(() => setEditData({ id: '', url: '' }))
-          .then(() => setOpenEdit(false));
-      },
-      onError: () => {
-        showError('Failed to edit Activity Provider.');
-      },
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['activity-providers'] })
+        .then(() => setEditData({ id: '', url: '' }))
+        .then(() => setOpenEdit(false));
     },
-  );
+    onError: () => {
+      showError('Failed to edit Activity Provider.');
+    },
+  });
 
   const mutations = {
     add: () => addActivityProviderMutation.mutate(),
