@@ -1,4 +1,3 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { IAPsService } from '../../services/iaps.service';
@@ -25,6 +24,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
 import MenuItem from '@mui/material/MenuItem';
+import { router } from '../../App';
+import { useSearch } from '@tanstack/react-router';
 
 const style = {
   position: 'absolute',
@@ -46,8 +47,6 @@ const columns = [
 ];
 
 export default function EditIAP() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const auth = useAuth();
   const [openAdd, setOpenAdd] = useState(false);
   const [activityId, setActivityId] = useState<string>('');
@@ -56,7 +55,8 @@ export default function EditIAP() {
     id: string;
     name: string;
   } | null>(null);
-  const [iapId] = useState<string>(searchParams.get('id') || '');
+  const search = useSearch({ from: '/edit-iap' });
+  const [iapId] = useState<string>(search?.id || '');
   const { showError } = useError();
 
   const iapService = useMemo(() => {
@@ -102,7 +102,7 @@ export default function EditIAP() {
       }
 
       if (iap.isDeployed) {
-        navigate(`/view-iap?id=${iapId}`);
+        router.navigate({ to: '/view-iap', search: { id: iapId } });
       }
 
       return iap;
@@ -169,7 +169,7 @@ export default function EditIAP() {
     },
 
     onSuccess: () => {
-      navigate(`/view-iap?id=${iap?._id}`);
+      router.navigate({ to: '/view-iap', search: { id: iap?._id } });
     },
     onError: () => {
       showError('Failed to deploy IAP.');

@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import React, { useMemo, useState } from 'react';
 import { IAPsService } from '../../services/iaps.service';
 import { useAuth } from 'react-oidc-context';
@@ -19,6 +18,7 @@ import {
 import Typography from '@mui/material/Typography';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
+import { router } from '../../App';
 
 const style = {
   position: 'absolute',
@@ -60,8 +60,6 @@ const columns = [
 ];
 
 export default function IAPs() {
-  const navigate = useNavigate();
-
   const iapService = useMemo(() => {
     return new IAPsService();
   }, []);
@@ -99,11 +97,11 @@ export default function IAPs() {
 
   const mapIaps = (iaps: Iap[]) => {
     const handleView = (id: string) => {
-      navigate(`/view-iap?id=${id}`);
+      router.navigate({ to: '/view-iap', search: { id } });
     };
 
     const handleEdit = (id: string) => {
-      navigate(`/edit-iap?id=${id}`);
+      router.navigate({ to: '/edit-iap', search: { id } });
     };
 
     return iaps.map((iap) => {
@@ -192,7 +190,9 @@ export default function IAPs() {
     onSuccess: (iap) => {
       queryClient
         .invalidateQueries({ queryKey: ['iaps'] })
-        .then(() => navigate(`/edit-iap?id=${iap._id}`));
+        .then(() =>
+          router.navigate({ to: '/edit-iap', search: { id: iap._id } }),
+        );
     },
     onError: () => {
       showError('Failed to add IAP.');

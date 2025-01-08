@@ -1,11 +1,11 @@
-import { useSearchParams } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { useEffect, useState } from 'react';
 import Typography from '@mui/material/Typography';
+import { useSearch } from '@tanstack/react-router';
 
 export default function ConfigInterface() {
-  const [searchParams] = useSearchParams();
-  const url = searchParams.get('interfaceUrl') || '';
+  const search = useSearch({ from: '/config-interface' });
+  const url = search?.interfaceUrl || '';
 
   const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState<Error | null>(null);

@@ -1,4 +1,3 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import React, { useMemo, useState } from 'react';
 import { CircularProgress, Divider, Grid2, Popover } from '@mui/material';
@@ -9,6 +8,8 @@ import { ActivitiesService } from '../../services/activities.service';
 import { FilterableTable } from '@invenira/components';
 import { ActivityKey } from '@invenira/model';
 import Button from '@mui/material/Button';
+import { router } from '../../App';
+import { useSearch } from '@tanstack/react-router';
 
 const columns = [
   {
@@ -20,9 +21,8 @@ const columns = [
 export default function ViewIAP() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [url, setUrl] = useState('');
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [iapId] = useState<string>(searchParams.get('id') || '');
+  const search = useSearch({ from: '/view-iap' });
+  const [iapId] = useState<string>(search?.id || '');
   const auth = useAuth();
 
   const iapService = useMemo(() => {
@@ -51,7 +51,7 @@ export default function ViewIAP() {
       }
 
       if (!iap.isDeployed) {
-        navigate(`/edit-iap?id=${iapId}`);
+        router.navigate({ to: '/edit-iap', search: { id: iapId } });
       }
 
       return iap;

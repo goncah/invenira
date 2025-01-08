@@ -1,4 +1,3 @@
-import { Outlet } from 'react-router-dom';
 import Navbar from './NavBar';
 import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme, PaletteMode } from '@mui/material/styles';
@@ -22,6 +21,7 @@ import { QueryErrorResetBoundary } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
 import Button from '@mui/material/Button';
 import { useAuth } from 'react-oidc-context';
+import { Outlet } from '@tanstack/react-router';
 
 interface ThemeContextProps {
   mode: PaletteMode;
