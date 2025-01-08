@@ -80,105 +80,103 @@ export default function Layout() {
   };
 
   return (
-    <div>
-      <ThemeContext.Provider value={{ mode, toggleTheme }}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <GlobalStyles
-            styles={{
-              body: {
-                backgroundColor: theme.palette.background.default,
-                color: theme.palette.text.primary,
-                margin: 0,
-                padding: 0,
-                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-              },
-            }}
-          />
-          <header>
-            <Navbar />
-          </header>
-          <main>
-            <Grid2
-              container
-              spacing={0}
-              direction="column"
-              alignItems="center"
-              justifyContent="center"
-              sx={{ minHeight: '100vh' }}
-            >
-              <Grid2>
-                {auth.isAuthenticated ? (
-                  <QueryErrorResetBoundary>
-                    {({ reset }) => (
-                      <ErrorBoundary
-                        onReset={reset}
-                        fallbackRender={({ resetErrorBoundary, error }) => (
-                          <Typography
-                            variant="h5"
-                            component="div"
-                            sx={{ textAlign: 'center' }}
+    <ThemeContext.Provider value={{ mode, toggleTheme }}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <GlobalStyles
+          styles={{
+            body: {
+              backgroundColor: theme.palette.background.default,
+              color: theme.palette.text.primary,
+              margin: 0,
+              padding: 0,
+              fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+            },
+          }}
+        />
+        <header>
+          <Navbar />
+        </header>
+        <main>
+          <Grid2
+            container
+            spacing={0}
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+            sx={{ minHeight: '100vh' }}
+          >
+            <Grid2>
+              {auth.isAuthenticated ? (
+                <QueryErrorResetBoundary>
+                  {({ reset }) => (
+                    <ErrorBoundary
+                      onReset={reset}
+                      fallbackRender={({ resetErrorBoundary, error }) => (
+                        <Typography
+                          variant="h5"
+                          component="div"
+                          sx={{ textAlign: 'center' }}
+                        >
+                          {error.message.toString()}
+                          <br />
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() =>
+                              startTransition(() => resetErrorBoundary())
+                            }
+                            sx={{ mt: 2 }}
                           >
-                            {error.message.toString()}
-                            <br />
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              onClick={() =>
-                                startTransition(() => resetErrorBoundary())
-                              }
-                              sx={{ mt: 2 }}
-                            >
-                              Retry
-                            </Button>
-                          </Typography>
-                        )}
-                      >
-                        <Outlet />
-                      </ErrorBoundary>
-                    )}
-                  </QueryErrorResetBoundary>
-                ) : (
-                  <Typography
-                    variant="h4"
-                    component="div"
-                    sx={{ textAlign: 'center' }}
-                  >
-                    Inven!RA
-                    <br />
-                    {auth.isLoading ? (
-                      <CircularProgress />
-                    ) : auth.error ? (
-                      'Error'
-                    ) : (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => auth.signinRedirect()}
-                      >
-                        Login
-                      </Button>
-                    )}
-                  </Typography>
-                )}
-              </Grid2>
+                            Retry
+                          </Button>
+                        </Typography>
+                      )}
+                    >
+                      <Outlet />
+                    </ErrorBoundary>
+                  )}
+                </QueryErrorResetBoundary>
+              ) : (
+                <Typography
+                  variant="h4"
+                  component="div"
+                  sx={{ textAlign: 'center' }}
+                >
+                  Inven!RA
+                  <br />
+                  {auth.isLoading ? (
+                    <CircularProgress />
+                  ) : auth.error ? (
+                    'Error'
+                  ) : (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => auth.signinRedirect()}
+                    >
+                      Login
+                    </Button>
+                  )}
+                </Typography>
+              )}
             </Grid2>
-            <Snackbar
-              open={error.open}
-              autoHideDuration={6000}
+          </Grid2>
+          <Snackbar
+            open={error.open}
+            autoHideDuration={6000}
+            onClose={handleErrorClose}
+          >
+            <Alert
               onClose={handleErrorClose}
+              severity="error"
+              sx={{ width: '100%' }}
             >
-              <Alert
-                onClose={handleErrorClose}
-                severity="error"
-                sx={{ width: '100%' }}
-              >
-                {error.message}
-              </Alert>
-            </Snackbar>
-          </main>
-        </ThemeProvider>
-      </ThemeContext.Provider>
-    </div>
+              {error.message}
+            </Alert>
+          </Snackbar>
+        </main>
+      </ThemeProvider>
+    </ThemeContext.Provider>
   );
 }
