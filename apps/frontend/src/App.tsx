@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import {
   createRootRoute,
   createRoute,
@@ -16,6 +16,27 @@ import ConfigInterface from './components/ConfigInterface';
 import ViewIAP from './components/iaps/ViewIAP';
 import EditIAP from './components/iaps/EditIAP';
 import Logout from './components/Logout';
+import { AnimatePresence, motion } from 'framer-motion';
+
+const pageTransitionVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+const AnimateChildren = ({ children }: { children: ReactNode }) => (
+  <AnimatePresence mode="wait">
+    <motion.div
+      variants={pageTransitionVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  </AnimatePresence>
+);
 
 const rootRoute = createRootRoute({
   component: () => {
@@ -31,37 +52,61 @@ const rootRoute = createRootRoute({
 const homeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: () => <Home />,
+  component: () => (
+    <AnimateChildren>
+      <Home />
+    </AnimateChildren>
+  ),
 });
 
 const iapsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/iaps',
-  component: () => <IAPs />,
+  component: () => (
+    <AnimateChildren>
+      <IAPs />
+    </AnimateChildren>
+  ),
 });
 
 const activitiesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/activities',
-  component: () => <Activities />,
+  component: () => (
+    <AnimateChildren>
+      <Activities />
+    </AnimateChildren>
+  ),
 });
 
 const activityProvidersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/activity-providers',
-  component: () => <ActivityProviders />,
+  component: () => (
+    <AnimateChildren>
+      <ActivityProviders />
+    </AnimateChildren>
+  ),
 });
 
 const editIapRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/edit-iap',
-  component: () => <EditIAP />,
+  component: () => (
+    <AnimateChildren>
+      <EditIAP />
+    </AnimateChildren>
+  ),
 });
 
 const viewIapRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/view-iap',
-  component: () => <ViewIAP />,
+  component: () => (
+    <AnimateChildren>
+      <ViewIAP />
+    </AnimateChildren>
+  ),
 });
 
 const logoutRoute = createRoute({

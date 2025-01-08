@@ -219,7 +219,7 @@ export default function EditIAP() {
     }));
 
   const availableActivities = activityList?.filter(
-    (a) => !iaps?.find((i) => i.activityIds.includes(a._id)),
+    (a) => !iaps?.find((i) => i?.activityIds?.includes(a._id)),
   );
 
   if (isIapsLoading || isIapLoading || isActivitiesLoading) {

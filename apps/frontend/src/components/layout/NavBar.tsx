@@ -11,6 +11,7 @@ import Button from '@mui/material/Button';
 import { useAuth } from 'react-oidc-context';
 import { styled, Switch } from '@mui/material';
 import { useTheme } from './Layout';
+import { router } from '../../App';
 
 export default function Navbar() {
   const auth = useAuth();
@@ -85,7 +86,7 @@ export default function Navbar() {
   return (
     <AppBar position="fixed" color="primary">
       <Toolbar>
-        <Button color="inherit" href="/">
+        <Button color="inherit" onClick={() => router.navigate({ to: '/' })}>
           <Typography variant="h6" component="div" sx={{ mr: 2 }}>
             Inven!RA
           </Typography>
@@ -93,13 +94,22 @@ export default function Navbar() {
         {auth.isAuthenticated ? (
           <>
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-              <Button color="inherit" href="/iaps">
+              <Button
+                color="inherit"
+                onClick={() => router.navigate({ to: '/iaps' })}
+              >
                 IAPs
               </Button>
-              <Button color="inherit" href="/activities">
+              <Button
+                color="inherit"
+                onClick={() => router.navigate({ to: '/activities' })}
+              >
                 Activities
               </Button>
-              <Button color="inherit" href="/activity-providers">
+              <Button
+                color="inherit"
+                onClick={() => router.navigate({ to: '/activity-providers' })}
+              >
                 Activity Providers
               </Button>
             </Box>

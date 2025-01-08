@@ -6,6 +6,7 @@ import React, {
   startTransition,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import {
@@ -65,15 +66,19 @@ export default function Layout() {
     localStorage.setItem('theme', mode);
   }, [mode]);
 
-  const theme = createTheme({
-    palette: {
-      mode,
-      background: {
-        default: mode === 'dark' ? '#121212' : '#f5f5f5',
-        paper: mode === 'dark' ? '#1e1e1e' : '#ffffff',
-      },
-    },
-  });
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          background: {
+            default: mode === 'dark' ? '#121212' : '#f5f5f5',
+            paper: mode === 'dark' ? '#1e1e1e' : '#ffffff',
+          },
+        },
+      }),
+    [mode],
+  );
 
   const toggleTheme = () => {
     setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
