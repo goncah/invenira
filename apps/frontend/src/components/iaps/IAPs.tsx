@@ -16,21 +16,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
 import { router } from '../../App';
 
-const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
-
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 500,
-  backgroundColor: bodyBackgroundColor,
-  border: '1px solid #000',
-  boxShadow: 24,
-  p: 4,
-  borderRadius: '12px',
-};
-
 const columns = [
   {
     id: 'name' as IapKey,
@@ -78,6 +63,21 @@ export default function IAPs() {
 
   const token = () => {
     return auth?.user?.access_token || '';
+  };
+
+  const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
+
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 500,
+    backgroundColor: bodyBackgroundColor,
+    border: '1px solid #000',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: '12px',
   };
 
   const deployMutation = useMutation({

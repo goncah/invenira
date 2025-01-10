@@ -21,33 +21,6 @@ import Typography from '@mui/material/Typography';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
 
-const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
-
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 500,
-  backgroundColor: bodyBackgroundColor,
-  border: '1px solid #000',
-  boxShadow: 24,
-  p: 4,
-  borderRadius: '12px',
-};
-
-const fullWindowStyle = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
-  backgroundColor: bodyBackgroundColor,
-  border: 'none',
-  boxShadow: 24,
-  p: 4,
-};
-
 const columns = [
   {
     id: 'name' as EnrichedActivityKey,
@@ -106,6 +79,33 @@ export default function Activities() {
   const token = () => {
     const token = auth?.user?.access_token;
     return token || '';
+  };
+
+  const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
+
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 500,
+    backgroundColor: bodyBackgroundColor,
+    border: '1px solid #000',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: '12px',
+  };
+
+  const fullWindowStyle = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: bodyBackgroundColor,
+    border: 'none',
+    boxShadow: 24,
+    p: 4,
   };
 
   const {

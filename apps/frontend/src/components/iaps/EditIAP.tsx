@@ -20,21 +20,6 @@ import MenuItem from '@mui/material/MenuItem';
 import { router } from '../../App';
 import { useSearch } from '@tanstack/react-router';
 
-const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
-
-const style = {
-  position: 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 500,
-  backgroundColor: bodyBackgroundColor,
-  border: '1px solid #000',
-  boxShadow: 24,
-  p: 4,
-  borderRadius: '12px',
-};
-
 const columns = [
   {
     id: 'name' as ActivityKey,
@@ -65,6 +50,21 @@ export default function EditIAP() {
 
   const token = () => {
     return auth?.user?.access_token || '';
+  };
+
+  const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
+
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 500,
+    backgroundColor: bodyBackgroundColor,
+    border: '1px solid #000',
+    boxShadow: 24,
+    p: 4,
+    borderRadius: '12px',
   };
 
   const queryClient = useQueryClient();
