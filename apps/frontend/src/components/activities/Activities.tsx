@@ -7,34 +7,33 @@ import {
   EnrichedActivity,
   EnrichedActivityKey,
 } from '@invenira/model';
-import { FilterableTable } from '@invenira/components';
+import {
+  FilterableTable,
+  SmoothDialog,
+  SmoothModal,
+} from '@invenira/components';
 import Button from '@mui/material/Button';
-import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
-import {
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
+
+const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
 
 const style = {
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
+  width: 500,
+  backgroundColor: bodyBackgroundColor,
   border: '1px solid #000',
   boxShadow: 24,
   p: 4,
+  borderRadius: '12px',
 };
 
 const fullWindowStyle = {
@@ -43,7 +42,7 @@ const fullWindowStyle = {
   left: 0,
   width: '100%',
   height: '100%',
-  bgcolor: 'background.paper',
+  backgroundColor: bodyBackgroundColor,
   border: 'none',
   boxShadow: 24,
   p: 4,
@@ -296,11 +295,10 @@ export default function Activities() {
         Add
       </Button>
 
-      <Modal
+      <SmoothModal
         open={openAdd}
         onClose={handleCloseAdd}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
+        fullscreen={iframeVisible}
       >
         <Box sx={iframeVisible ? fullWindowStyle : style}>
           <h2 id="modal-modal-title">Add New Activity</h2>
@@ -387,25 +385,16 @@ export default function Activities() {
             </>
           )}
         </Box>
-      </Modal>
+      </SmoothModal>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={confirmDelete} onClose={closeDeleteConfirmation}>
-        <DialogTitle>Delete Confirmation</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete the activity {deleteTarget?.name}?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteConfirmation} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={mutations.delete} color="error">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <SmoothDialog
+        title={'Delete Confirmation'}
+        content={`Are you sure you want to delete the activity ${deleteTarget?.name}?`}
+        open={confirmDelete}
+        onClose={closeDeleteConfirmation}
+        onConfirm={mutations.delete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </>
   );
 }

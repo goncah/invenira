@@ -2,34 +2,33 @@ import React, { useMemo, useState } from 'react';
 import { IAPsService } from '../../services/iaps.service';
 import { useAuth } from 'react-oidc-context';
 import { Iap, IapKey } from '@invenira/model';
-import { FilterableTable } from '@invenira/components';
+import {
+  FilterableTable,
+  SmoothDialog,
+  SmoothModal,
+} from '@invenira/components';
 import Button from '@mui/material/Button';
-import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
-import {
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useError } from '../layout/Layout';
 import { router } from '../../App';
+
+const bodyBackgroundColor = getComputedStyle(document.body).backgroundColor;
 
 const style = {
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
-  bgcolor: 'background.paper',
+  width: 500,
+  backgroundColor: bodyBackgroundColor,
   border: '1px solid #000',
   boxShadow: 24,
   p: 4,
+  borderRadius: '12px',
 };
 
 const columns = [
@@ -264,13 +263,7 @@ export default function IAPs() {
         Add
       </Button>
 
-      {/* Add Modal */}
-      <Modal
-        open={openAdd}
-        onClose={handleCloseAdd}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
+      <SmoothModal open={openAdd} onClose={handleCloseAdd} fullscreen={openAdd}>
         <Box sx={style}>
           <h2 id="modal-modal-title">Add New IAP</h2>
           <TextField
@@ -307,25 +300,16 @@ export default function IAPs() {
             Cancel
           </Button>
         </Box>
-      </Modal>
+      </SmoothModal>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={confirmDelete} onClose={closeDeleteConfirmation}>
-        <DialogTitle>Delete Confirmation</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete the IAP {deleteTarget?.name}?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteConfirmation} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={mutations.delete} color="error">
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <SmoothDialog
+        title={'Delete Confirmation'}
+        content={`Are you sure you want to delete the IAP ${deleteTarget?.name}?`}
+        open={confirmDelete}
+        onClose={closeDeleteConfirmation}
+        onConfirm={mutations.delete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </>
   );
 }
