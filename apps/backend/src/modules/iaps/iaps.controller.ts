@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
+import { MongoId } from '../../mongo-id';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('iaps')
@@ -38,7 +39,7 @@ export class IapsController {
   @Roles(...INSTRUCTOR_ROLES)
   @Post(':id/activities')
   async addActivity(
-    @Param('id') id: string,
+    @MongoId() id: string,
     @Body() addActivityToIapDto: AddActivityToIapDto,
   ) {
     return this.iapsService.addActivity(id, addActivityToIapDto);
@@ -47,7 +48,7 @@ export class IapsController {
   @Roles(...INSTRUCTOR_ROLES)
   @Delete(':id/activities/:activityId')
   async removeActivity(
-    @Param('id') id: string,
+    @MongoId() id: string,
     @Param('activityId') activityId: string,
   ) {
     return this.iapsService.removeActivity(id, activityId);
@@ -55,7 +56,7 @@ export class IapsController {
 
   @Roles(...INSTRUCTOR_ROLES)
   @Patch(':id/deploy')
-  async deploy(@Param('id') id: string, @Req() req: FastifyRequest) {
+  async deploy(@MongoId() id: string, @Req() req: FastifyRequest) {
     return this.iapsService.deploy(id, req.protocol + '://' + req.hostname);
   }
 
@@ -67,7 +68,7 @@ export class IapsController {
 
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@MongoId() id: string) {
     return this.iapsService.findOne(id);
   }
 
@@ -75,7 +76,7 @@ export class IapsController {
   @Patch(':id')
   async update(
     @AuthorizedUser() user: string,
-    @Param('id') id: string,
+    @MongoId() id: string,
     @Body() updateIapDto: UpdateIapDto,
   ) {
     updateIapDto['updatedBy'] = user;
@@ -84,7 +85,7 @@ export class IapsController {
 
   @Roles(...INSTRUCTOR_ROLES)
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@MongoId() id: string) {
     return this.iapsService.remove(id);
   }
 }

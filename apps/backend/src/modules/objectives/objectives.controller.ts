@@ -1,15 +1,8 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { ObjectivesService } from './objectives.service';
 import { CreateObjectiveDto } from './dto/create-objective.dto';
 import { UpdateObjectiveDto } from './dto/update-objective.dto';
+import { MongoId } from '../../mongo-id';
 
 @Controller('objectives')
 export class ObjectivesController {
@@ -26,20 +19,20 @@ export class ObjectivesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@MongoId() id: string) {
     return this.objectivesService.findOne(+id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @MongoId() id: string,
     @Body() updateObjectiveDto: UpdateObjectiveDto,
   ) {
     return this.objectivesService.update(+id, updateObjectiveDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@MongoId() id: string) {
     return this.objectivesService.remove(+id);
   }
 }

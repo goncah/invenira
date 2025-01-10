@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpStatus,
-  Param,
   Patch,
   Post,
   Query,
@@ -22,6 +21,7 @@ import { AuthorizedUser } from '../auth/user.decorator';
 import { Activity } from '@invenira/model';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { Public } from '../auth/public';
+import { MongoId } from '../../mongo-id';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activities')
@@ -59,7 +59,7 @@ export class ActivitiesController {
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Activity> {
+  async findOne(@MongoId() id: string): Promise<Activity> {
     return this.activitiesService.findOneActivity(id);
   }
 
@@ -71,7 +71,7 @@ export class ActivitiesController {
   @Patch(':id')
   async update(
     @AuthorizedUser() user: string,
-    @Param('id') id: string,
+    @MongoId() id: string,
     @Body() updateActivityDto: UpdateActivityDto,
   ): Promise<Activity> {
     updateActivityDto['updatedBy'] = user;
@@ -84,7 +84,7 @@ export class ActivitiesController {
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<Activity> {
+  async remove(@MongoId() id: string): Promise<Activity> {
     return this.activitiesService.removeActivity(id);
   }
 
@@ -92,7 +92,7 @@ export class ActivitiesController {
   @Get(':id/provide')
   @Redirect('', 302)
   async provide(
-    @Param('id') id: string,
+    @MongoId() id: string,
     @Query('userId') userId: string,
     @Query('data') data: any,
   ) {

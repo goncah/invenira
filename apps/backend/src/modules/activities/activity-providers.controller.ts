@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpStatus,
-  Param,
   Patch,
   Post,
   UseGuards,
@@ -20,6 +19,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
 import { ActivityProvider } from '@invenira/model';
+import { MongoId } from '../../mongo-id';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activity-providers')
@@ -59,7 +59,7 @@ export class ActivityProvidersController {
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<ActivityProvider> {
+  async findOne(@MongoId() id: string): Promise<ActivityProvider> {
     return this.activitiesService.findOneActivityProvider(id);
   }
 
@@ -69,9 +69,7 @@ export class ActivityProvidersController {
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id/config-interface')
-  async getConfigInterface(
-    @Param('id') id: string,
-  ): Promise<ConfigInterfaceDto> {
+  async getConfigInterface(@MongoId() id: string): Promise<ConfigInterfaceDto> {
     return this.activitiesService.getConfigurationInterfaceUrl(id);
   }
 
@@ -81,7 +79,7 @@ export class ActivityProvidersController {
   })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id/config-params')
-  async getConfigParameters(@Param('id') id: string): Promise<string[]> {
+  async getConfigParameters(@MongoId() id: string): Promise<string[]> {
     return this.activitiesService.getActivityParameters(id);
   }
 
@@ -93,7 +91,7 @@ export class ActivityProvidersController {
   @Patch(':id')
   async update(
     @AuthorizedUser() user: string,
-    @Param('id') id: string,
+    @MongoId() id: string,
     @Body() updateActivityProviderDto: UpdateActivityProviderDto,
   ): Promise<ActivityProvider> {
     updateActivityProviderDto['updatedBy'] = user;
@@ -109,7 +107,7 @@ export class ActivityProvidersController {
   })
   @Roles('app_admin')
   @Delete(':id')
-  async remove(@Param('id') id: string): Promise<void> {
+  async remove(@MongoId() id: string): Promise<void> {
     return this.activitiesService.removeActivityProvider(id);
   }
 }
