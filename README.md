@@ -1,5 +1,8 @@
 # An [Inven!RA](https://doi.org/10.3390/su15010857) Implementation
 
+### Recomended Docker Version
+Docker version 27.5.0
+
 ## For users
 If you're only looking to start a complete Inven!RA platform, run:
 ```bash
