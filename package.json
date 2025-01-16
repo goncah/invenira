@@ -1,6 +1,6 @@
 {
   "name": "@invenira/source",
-  "version": "0.0.0",
+  "version": "0.0.5",
   "license": "MIT",
   "scripts": {
     "backend:dev": "nx run backend:serve",
