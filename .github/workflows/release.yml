@@ -1,11 +1,11 @@
-name: CI
+name: RELEASE
 
 on:
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
-  bdi:
+  main:
     name: Build Docker Images
     runs-on: ubuntu-latest
     permissions:
@@ -24,6 +24,11 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
+      - run: npx playwright install --with-deps
+      - uses: nrwl/nx-set-shas@v4
+
+      - name: Lint and Test
+        run: npm run all
 
       - name: Build Backend
         run: npm run backend:build
