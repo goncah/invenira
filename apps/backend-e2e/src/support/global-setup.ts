@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import jwt from 'jsonwebtoken';
 
 module.exports = async function () {
   console.log('\nSetting up...\n');
@@ -29,10 +30,13 @@ module.exports = async function () {
     });
   });
 
+  const customEnv = { ...process.env, OAUTH_KEY: '123456789' };
+
   globalThis.__SERVER_PROCESS__ = await new Promise((resolve, reject) => {
     const server = spawn('nx', ['run', 'backend:serve'], {
       shell: true,
       stdio: 'pipe',
+      env: customEnv,
     });
 
     server.stdout.on('data', (data) => {
@@ -50,4 +54,19 @@ module.exports = async function () {
       reject(`Backend error: ${err}`);
     });
   });
+
+  globalThis.__TOKEN__ = jwt.sign(
+    {
+      preferred_username: 'testAdmin',
+      realm_access: {
+        roles: ['app_admin'],
+      },
+      azp: '...',
+    },
+    '123456789',
+    {
+      expiresIn: '1h',
+      issuer: 'test',
+    },
+  );
 };

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { BadRequestException } from '../../../exceptions/bad.request.exception';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -24,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         '[object Array]'
       )
     ) {
-      throw new Error('Invalid JWT');
+      throw new BadRequestException('Invalid JWT');
     }
 
     return {
