@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export interface ActivityProvider {
   _id: string;
   name: string;
@@ -10,11 +12,23 @@ export interface ActivityProvider {
 
 export type ActivityProviderKey = keyof ActivityProvider;
 
-export interface CreateActivityProvider extends Partial<ActivityProvider> {
-  name: string;
-  url: string;
-}
+export const CreateActivityProviderSchema = z
+  .object({
+    name: z.string().nonempty(),
+    url: z.string().nonempty(),
+  })
+  .strict();
 
-export interface UpdateActivityProvider extends Partial<ActivityProvider> {
-  url: string;
-}
+export type CreateActivityProvider = z.infer<
+  typeof CreateActivityProviderSchema
+>;
+
+export const UpdateActivityProviderSchema = z
+  .object({
+    url: z.string().nonempty(),
+  })
+  .strict();
+
+export type UpdateActivityProvider = z.infer<
+  typeof UpdateActivityProviderSchema
+>;

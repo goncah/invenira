@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export interface Activity {
   _id: string;
   name: string;
@@ -17,16 +19,28 @@ export interface EnrichedActivity extends Activity {
 
 export type EnrichedActivityKey = keyof EnrichedActivity;
 
-export interface CreateActivity extends Partial<Activity> {
-  name: string;
-  activityProviderId: string;
-  parameters: Map<string, unknown>;
-}
+export const CreateActivitySchema = z
+  .object({
+    name: z.string().nonempty(),
+    activityProviderId: z.string().nonempty(),
+    parameters: z.map(z.string(), z.any()),
+  })
+  .strict();
 
-export interface UpdateActivity extends Partial<Activity> {
-  parameters: Map<string, unknown>;
-}
+export type CreateActivity = z.infer<typeof CreateActivitySchema>;
 
-export interface ConfigInterface {
-  url: string;
-}
+export const UpdateActivitySchema = z
+  .object({
+    parameters: z.map(z.string(), z.any()),
+  })
+  .strict();
+
+export type UpdateActivity = z.infer<typeof UpdateActivitySchema>;
+
+export const ConfigInterfaceSchema = z
+  .object({
+    url: z.string().nonempty(),
+  })
+  .strict();
+
+export type ConfigInterface = z.infer<typeof ConfigInterfaceSchema>;

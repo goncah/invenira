@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export interface Iap {
   _id: string;
   name: string;
@@ -13,16 +15,28 @@ export interface Iap {
 
 export type IapKey = keyof Iap;
 
-export interface CreateIap extends Partial<Iap> {
-  name: string;
-  description: string;
-}
+export const CreateIapProviderSchema = z
+  .object({
+    name: z.string().nonempty(),
+    description: z.string().nonempty(),
+  })
+  .strict();
 
-export interface UpdateIap extends Partial<Iap> {
-  name: string;
-  description: string;
-}
+export type CreateIap = z.infer<typeof CreateIapProviderSchema>;
 
-export interface AddActivityToIap {
-  activityId: string;
-}
+export const UpdateIapProviderSchema = z
+  .object({
+    name: z.string().nonempty(),
+    description: z.string().nonempty(),
+  })
+  .strict();
+
+export type UpdateIap = z.infer<typeof UpdateIapProviderSchema>;
+
+export const AddActivityToIapSchema = z
+  .object({
+    activityId: z.string().nonempty(),
+  })
+  .strict();
+
+export type AddActivityToIap = z.infer<typeof AddActivityToIapSchema>;
