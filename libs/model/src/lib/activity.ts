@@ -23,7 +23,7 @@ export const CreateActivitySchema = z
   .object({
     name: z.string().nonempty(),
     activityProviderId: z.string().nonempty(),
-    parameters: z.map(z.string(), z.any()),
+    parameters: z.object({}).passthrough(),
   })
   .strict();
 
@@ -31,7 +31,7 @@ export type CreateActivity = z.infer<typeof CreateActivitySchema>;
 
 export const UpdateActivitySchema = z
   .object({
-    parameters: z.map(z.string(), z.any()),
+    parameters: z.object({}).passthrough(),
   })
   .strict();
 
@@ -39,7 +39,7 @@ export type UpdateActivity = z.infer<typeof UpdateActivitySchema>;
 
 export const ConfigInterfaceSchema = z
   .object({
-    url: z.string().nonempty(),
+    url: z.string().url(),
   })
   .strict();
 

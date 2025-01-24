@@ -15,23 +15,23 @@ export interface Iap {
 
 export type IapKey = keyof Iap;
 
-export const CreateIapProviderSchema = z
+export const CreateIapSchema = z
   .object({
     name: z.string().nonempty(),
     description: z.string().nonempty(),
   })
   .strict();
 
-export type CreateIap = z.infer<typeof CreateIapProviderSchema>;
+export type CreateIap = z.infer<typeof CreateIapSchema>;
 
-export const UpdateIapProviderSchema = z
+export const UpdateIapSchema = z
   .object({
     name: z.string().nonempty(),
     description: z.string().nonempty(),
   })
   .strict();
 
-export type UpdateIap = z.infer<typeof UpdateIapProviderSchema>;
+export type UpdateIap = z.infer<typeof UpdateIapSchema>;
 
 export const AddActivityToIapSchema = z
   .object({

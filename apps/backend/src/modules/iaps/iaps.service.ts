@@ -1,13 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateIapDto } from './dto/create-iap.dto';
-import { UpdateIapDto } from './dto/update-iap.dto';
 import { IapEntity } from './entities/iap.entity';
-import { AddActivityToIapDto } from './dto/add-activity-to-iap.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ActivitiesService } from '../activities/activities.service';
 import { EventBusService } from '../utils/event-bus-service';
-import { Iap } from '@invenira/model';
+import { AddActivityToIap, CreateIap, Iap, UpdateIap } from '@invenira/model';
 
 @Injectable()
 export class IapsService {
@@ -20,13 +17,13 @@ export class IapsService {
     this.setupEvents(this.eventBus);
   }
 
-  async create(createIapDto: CreateIapDto): Promise<Iap> {
+  async create(createIapDto: CreateIap): Promise<Iap> {
     return this.iapModel.create(createIapDto);
   }
 
   async addActivity(
     id: string,
-    addActivityToIapDto: AddActivityToIapDto,
+    addActivityToIapDto: AddActivityToIap,
   ): Promise<Iap> {
     return this.iapModel
       .findOneAndUpdate(
@@ -97,7 +94,7 @@ export class IapsService {
     return this.iapModel.findOne({ _id: id }).exec();
   }
 
-  async update(id: string, updateIapDto: UpdateIapDto): Promise<Iap> {
+  async update(id: string, updateIapDto: UpdateIap): Promise<Iap> {
     return this.iapModel
       .findByIdAndUpdate({ _id: id }, updateIapDto, {
         new: true,

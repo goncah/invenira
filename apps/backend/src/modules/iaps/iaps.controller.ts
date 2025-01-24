@@ -11,14 +11,20 @@ import {
 } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
 import { IapsService } from './iaps.service';
-import { CreateIapDto } from './dto/create-iap.dto';
-import { UpdateIapDto } from './dto/update-iap.dto';
-import { AddActivityToIapDto } from './dto/add-activity-to-iap.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
 import { MongoId } from '../../mongo-id';
+import {
+  AddActivityToIap,
+  AddActivityToIapSchema,
+  CreateIap,
+  CreateIapSchema,
+  UpdateIap,
+  UpdateIapSchema,
+} from '@invenira/model';
+import { ZodValidationPipe } from '../../pipes/zod-validation.pipe';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('iaps')
@@ -29,7 +35,7 @@ export class IapsController {
   @Post()
   async create(
     @AuthorizedUser() user: string,
-    @Body() createIapDto: CreateIapDto,
+    @Body(new ZodValidationPipe(CreateIapSchema)) createIapDto: CreateIap,
   ) {
     createIapDto['createdBy'] = user;
     createIapDto['updatedBy'] = user;
@@ -40,7 +46,8 @@ export class IapsController {
   @Post(':id/activities')
   async addActivity(
     @MongoId() id: string,
-    @Body() addActivityToIapDto: AddActivityToIapDto,
+    @Body(new ZodValidationPipe(AddActivityToIapSchema))
+    addActivityToIapDto: AddActivityToIap,
   ) {
     return this.iapsService.addActivity(id, addActivityToIapDto);
   }
@@ -77,7 +84,7 @@ export class IapsController {
   async update(
     @AuthorizedUser() user: string,
     @MongoId() id: string,
-    @Body() updateIapDto: UpdateIapDto,
+    @Body(new ZodValidationPipe(UpdateIapSchema)) updateIapDto: UpdateIap,
   ) {
     updateIapDto['updatedBy'] = user;
     return this.iapsService.update(id, updateIapDto);

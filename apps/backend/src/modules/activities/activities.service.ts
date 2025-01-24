@@ -62,7 +62,7 @@ export class ActivitiesService {
   ): Promise<Activity> {
     const par = await this.getActivityParameters(id);
 
-    if (!par.every((e) => updateActivityDto.parameters.has(e))) {
+    if (!par.every((e) => e in updateActivityDto.parameters)) {
       throw new BadRequestException('Missing parameters');
     }
 

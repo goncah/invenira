@@ -8,7 +8,6 @@ import {
   Query,
   Redirect,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -32,11 +31,11 @@ export class ActivitiesController {
   constructor(private readonly activitiesService: ActivitiesService) {}
 
   @Roles(...INSTRUCTOR_ROLES)
-  @UsePipes(new ZodValidationPipe(CreateActivitySchema))
   @Post()
   async create(
     @AuthorizedUser() user: string,
-    @Body() createActivity: CreateActivity,
+    @Body(new ZodValidationPipe(CreateActivitySchema))
+    createActivity: CreateActivity,
   ): Promise<Activity> {
     createActivity['createdBy'] = user;
     createActivity['updatedBy'] = user;
@@ -56,12 +55,12 @@ export class ActivitiesController {
   }
 
   @Roles(...INSTRUCTOR_ROLES)
-  @UsePipes(new ZodValidationPipe(UpdateActivitySchema))
   @Patch(':id')
   async update(
     @AuthorizedUser() user: string,
     @MongoId() id: string,
-    @Body() updateActivityDto: UpdateActivity,
+    @Body(new ZodValidationPipe(UpdateActivitySchema))
+    updateActivityDto: UpdateActivity,
   ): Promise<Activity> {
     updateActivityDto['updatedBy'] = user;
     return this.activitiesService.updateActivity(id, updateActivityDto);

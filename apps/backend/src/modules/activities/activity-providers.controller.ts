@@ -6,7 +6,6 @@ import {
   Patch,
   Post,
   UseGuards,
-  UsePipes,
 } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -30,11 +29,11 @@ export class ActivityProvidersController {
   constructor(private readonly activitiesService: ActivitiesService) {}
 
   @Roles('app_admin')
-  @UsePipes(new ZodValidationPipe(CreateActivityProviderSchema))
   @Post()
   async create(
     @AuthorizedUser() user: string,
-    @Body() createActivityProviderDto: CreateActivityProvider,
+    @Body(new ZodValidationPipe(CreateActivityProviderSchema))
+    createActivityProviderDto: CreateActivityProvider,
   ): Promise<ActivityProvider> {
     createActivityProviderDto['createdBy'] = user;
     createActivityProviderDto['updatedBy'] = user;
@@ -68,12 +67,12 @@ export class ActivityProvidersController {
   }
 
   @Roles('app_admin')
-  @UsePipes(new ZodValidationPipe(UpdateActivityProviderSchema))
   @Patch(':id')
   async update(
     @AuthorizedUser() user: string,
     @MongoId() id: string,
-    @Body() updateActivityProviderDto: UpdateActivityProvider,
+    @Body(new ZodValidationPipe(UpdateActivityProviderSchema))
+    updateActivityProviderDto: UpdateActivityProvider,
   ): Promise<ActivityProvider> {
     updateActivityProviderDto['updatedBy'] = user;
     return this.activitiesService.updateActivityProvider(

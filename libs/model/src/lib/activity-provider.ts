@@ -14,8 +14,10 @@ export type ActivityProviderKey = keyof ActivityProvider;
 
 export const CreateActivityProviderSchema = z
   .object({
-    name: z.string().nonempty(),
-    url: z.string().nonempty(),
+    name: z
+      .string()
+      .min(3, 'Activity Provider name must have a length of 3 or more!'),
+    url: z.string().url('Invalid Activity Provider URL'),
   })
   .strict();
 
@@ -25,7 +27,7 @@ export type CreateActivityProvider = z.infer<
 
 export const UpdateActivityProviderSchema = z
   .object({
-    url: z.string().nonempty(),
+    url: z.string().url('Invalid Activity Provider URL'),
   })
   .strict();
 
