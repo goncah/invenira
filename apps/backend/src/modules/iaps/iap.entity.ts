@@ -5,9 +5,7 @@ import { Iap } from '@invenira/model';
 export type IapDocument = HydratedDocument<IapEntity>;
 
 @Schema({ collection: 'iaps', timestamps: true })
-export class IapEntity extends Document implements Iap {
-  _id: string;
-
+export class IapEntity extends Document<string, never, Iap> implements Iap {
   @Prop({ required: true, unique: true })
   name: string;
 
@@ -25,8 +23,8 @@ export class IapEntity extends Document implements Iap {
   @Prop({ required: true, default: false })
   isDeployed: boolean;
 
-  @Prop({ required: true, default: {} })
-  deployUrls: Map<string, string>;
+  @Prop({ required: true, default: {}, type: Map })
+  deployUrls: { [k: string]: unknown };
 
   createdAt: Date;
 

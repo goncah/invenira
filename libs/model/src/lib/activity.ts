@@ -1,21 +1,29 @@
 import { z } from 'zod';
 
-export interface Activity {
-  _id: string;
-  name: string;
-  activityProviderId: string;
-  parameters: Map<string, unknown>;
-  createdAt: Date;
-  createdBy: string;
-  updatedAt: Date;
-  updatedBy: string;
-}
+export const ActivitySchema = z
+  .object({
+    _id: z.string().nonempty(),
+    name: z.string().nonempty(),
+    activityProviderId: z.string().nonempty(),
+    parameters: z.record(z.string(), z.any()),
+    createdAt: z.date(),
+    createdBy: z.string().nonempty(),
+    updatedAt: z.date(),
+    updatedBy: z.string().nonempty(),
+  })
+  .strict();
+
+export type Activity = Required<z.infer<typeof ActivitySchema>>;
 
 export type ActivityKey = keyof Activity;
 
-export interface EnrichedActivity extends Activity {
-  ap: string;
-}
+export const EnrichedActivitySchema = z
+  .object({
+    ap: z.string().nonempty(),
+  })
+  .strict();
+
+export type EnrichedActivity = Required<z.infer<typeof EnrichedActivitySchema>>;
 
 export type EnrichedActivityKey = keyof EnrichedActivity;
 
@@ -27,7 +35,7 @@ export const CreateActivitySchema = z
   })
   .strict();
 
-export type CreateActivity = z.infer<typeof CreateActivitySchema>;
+export type CreateActivity = Required<z.infer<typeof CreateActivitySchema>>;
 
 export const UpdateActivitySchema = z
   .object({
@@ -35,7 +43,7 @@ export const UpdateActivitySchema = z
   })
   .strict();
 
-export type UpdateActivity = z.infer<typeof UpdateActivitySchema>;
+export type UpdateActivity = Required<z.infer<typeof UpdateActivitySchema>>;
 
 export const ConfigInterfaceSchema = z
   .object({
@@ -43,4 +51,4 @@ export const ConfigInterfaceSchema = z
   })
   .strict();
 
-export type ConfigInterface = z.infer<typeof ConfigInterfaceSchema>;
+export type ConfigInterface = Required<z.infer<typeof ConfigInterfaceSchema>>;

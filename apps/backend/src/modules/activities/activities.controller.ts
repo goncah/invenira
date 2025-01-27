@@ -16,6 +16,7 @@ import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
 import {
   Activity,
+  AnalyticsContract,
   CreateActivity,
   CreateActivitySchema,
   UpdateActivity,
@@ -52,6 +53,12 @@ export class ActivitiesController {
   @Get(':id')
   async findOne(@MongoId() id: string): Promise<Activity> {
     return this.activitiesService.findOneActivity(id);
+  }
+
+  @Roles(...INSTRUCTOR_ROLES)
+  @Get(':id/metrics')
+  async findOneMetrics(@MongoId() id: string): Promise<AnalyticsContract> {
+    return this.activitiesService.findOneActivityMetrics(id);
   }
 
   @Roles(...INSTRUCTOR_ROLES)

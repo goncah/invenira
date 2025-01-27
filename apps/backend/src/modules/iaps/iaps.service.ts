@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IapEntity } from './entities/iap.entity';
+import { IapEntity } from './iap.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ActivitiesService } from '../activities/activities.service';
@@ -92,6 +92,71 @@ export class IapsService {
 
   async findOne(id: string): Promise<Iap> {
     return this.iapModel.findOne({ _id: id }).exec();
+  }
+
+  async findMetrics(id: string): Promise<string[]> {
+    const iap = await this.findOne(id);
+
+    if (!iap) {
+      throw new NotFoundException(`IAP with Id ${id} not found`);
+    }
+
+    const metrics = await iap.activityIds
+      .map(async (activityId: string) => {
+        const activity =
+          await this.activitiesService.findOneActivity(activityId);
+        const metrics =
+          await this.activitiesService.findOneActivityMetrics(activityId);
+
+        return {
+          id: activity.name.replace(/[^a-zA-Z]/g, ''),
+          metrics: metrics,
+        };
+      })
+      .reduce(async (pv, cv) => {
+        const previous = await pv;
+        const current = await cv;
+
+        current.metrics.qualAnalytics = current.metrics.qualAnalytics.map(
+          (q) => {
+            return {
+              name: current.id + '.' + q.name,
+              type: q.type,
+            };
+          },
+        );
+
+        current.metrics.quantAnalytics = current.metrics.quantAnalytics.map(
+          (q) => {
+            return {
+              name: current.id + '.' + q.name,
+              type: q.type,
+            };
+          },
+        );
+
+        if (!previous) {
+          return current;
+        }
+
+        previous.metrics.qualAnalytics.forEach((q) => {
+          current.metrics.qualAnalytics.push({
+            name: previous.id + '.' + q.name,
+            type: q.type,
+          });
+        });
+
+        previous.metrics.quantAnalytics.forEach((q) => {
+          current.metrics.quantAnalytics.push({
+            name: previous.id + '.' + q.name,
+            type: q.type,
+          });
+        });
+
+        return current;
+      });
+
+    return metrics.metrics.qualAnalytics.map((q) => q.name);
   }
 
   async update(id: string, updateIapDto: UpdateIap): Promise<Iap> {

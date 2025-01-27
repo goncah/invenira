@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ActivityEntity } from './entities/activity.entity';
+import { ActivityEntity } from './activity.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BadRequestException } from '../../exceptions/bad.request.exception';
-import { ActivityProviderEntity } from './entities/activity-provider.entity';
+import { ActivityProviderEntity } from './activity-provider.entity';
 import { ActivityProvidersClient } from './activity-providers.client';
 import { EventBusService } from '../utils/event-bus-service';
 import {
   Activity,
   ActivityProvider,
+  AnalyticsContract,
   ConfigInterface,
   CreateActivity,
   CreateActivityProvider,
@@ -54,6 +55,18 @@ export class ActivitiesService {
 
   async findOneActivity(id: string): Promise<Activity> {
     return await this.activityModel.findOne({ _id: id }).exec();
+  }
+
+  async findOneActivityMetrics(id: string): Promise<AnalyticsContract> {
+    const activity = this.findOneActivity(id);
+
+    if (!activity) {
+      throw new BadRequestException(`Activity ${id} not found.`);
+    }
+
+    const ap = await this.findOneActivityProvider(id);
+
+    return await this.activityProvidersClient.getAnalyticsContract(ap.url);
   }
 
   async updateActivity(

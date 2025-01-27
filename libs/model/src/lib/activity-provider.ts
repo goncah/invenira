@@ -1,14 +1,18 @@
 import { z } from 'zod';
 
-export interface ActivityProvider {
-  _id: string;
-  name: string;
-  url: string;
-  createdAt: Date;
-  createdBy: string;
-  updatedAt: Date;
-  updatedBy: string;
-}
+export const ActivityProviderSchema = z
+  .object({
+    _id: z.string().nonempty(),
+    name: z.string().nonempty(),
+    url: z.string().url(),
+    createdAt: z.date(),
+    createdBy: z.string().nonempty(),
+    updatedAt: z.date(),
+    updatedBy: z.string().nonempty(),
+  })
+  .strict();
+
+export type ActivityProvider = Required<z.infer<typeof ActivityProviderSchema>>;
 
 export type ActivityProviderKey = keyof ActivityProvider;
 
@@ -21,8 +25,8 @@ export const CreateActivityProviderSchema = z
   })
   .strict();
 
-export type CreateActivityProvider = z.infer<
-  typeof CreateActivityProviderSchema
+export type CreateActivityProvider = Required<
+  z.infer<typeof CreateActivityProviderSchema>
 >;
 
 export const UpdateActivityProviderSchema = z
@@ -31,6 +35,6 @@ export const UpdateActivityProviderSchema = z
   })
   .strict();
 
-export type UpdateActivityProvider = z.infer<
-  typeof UpdateActivityProviderSchema
+export type UpdateActivityProvider = Required<
+  z.infer<typeof UpdateActivityProviderSchema>
 >;

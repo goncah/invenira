@@ -53,6 +53,12 @@ export class IapsController {
   }
 
   @Roles(...INSTRUCTOR_ROLES)
+  @Get(':id/activities/metrics')
+  async findMetrics(@MongoId() id: string) {
+    return this.iapsService.findMetrics(id);
+  }
+
+  @Roles(...INSTRUCTOR_ROLES)
   @Delete(':id/activities/:activityId')
   async removeActivity(
     @MongoId() id: string,
