@@ -39,6 +39,7 @@
     "dayjs": "^1.11.13",
     "dompurify": "^3.2.3",
     "jsonwebtoken": "^9.0.2",
+    "mathjs": "^14.1.0",
     "mongoose": "^8.8.4",
     "motion": "^11.16.1",
     "passport": "^0.7.0",

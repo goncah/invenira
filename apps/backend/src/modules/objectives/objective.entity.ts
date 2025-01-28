@@ -9,16 +9,19 @@ export class ObjectiveEntity
   extends Document<string, never, Objective>
   implements Objective
 {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   iapId: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   formula: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
+  targetValue: number;
+
+  @Prop({ required: true })
   value: number;
 
   createdAt: Date;

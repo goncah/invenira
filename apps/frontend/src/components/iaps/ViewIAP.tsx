@@ -6,15 +6,31 @@ import { useAuth } from 'react-oidc-context';
 import { IAPsService } from '../../services/iaps.service';
 import { ActivitiesService } from '../../services/activities.service';
 import { FilterableTable } from '@invenira/components';
-import { ActivityKey } from '@invenira/model';
+import { ActivityKey, ObjectiveKey } from '@invenira/model';
 import Button from '@mui/material/Button';
 import { router } from '../../App';
 import { useSearch } from '@tanstack/react-router';
+import { ObjectivesService } from '../../services/objectives.service';
 
-const columns = [
+const activityColumns = [
   {
     id: 'name' as ActivityKey,
     name: 'Name',
+  },
+];
+
+const objectiveColumns = [
+  {
+    id: 'name' as ObjectiveKey,
+    name: 'Name',
+  },
+  {
+    id: 'formula' as ObjectiveKey,
+    name: 'Formula',
+  },
+  {
+    id: 'targetValue' as ObjectiveKey,
+    name: 'Target Value',
   },
 ];
 
@@ -31,6 +47,10 @@ export default function ViewIAP() {
 
   const activityService = useMemo(() => {
     return new ActivitiesService();
+  }, []);
+
+  const objectiveService = useMemo(() => {
+    return new ObjectivesService();
   }, []);
 
   const token = () => {
@@ -102,6 +122,27 @@ export default function ViewIAP() {
     throw atError;
   }
 
+  const {
+    data: objectiveList,
+    isLoading: isObjectivesLoading,
+    error: objectiveError,
+  } = useQuery({
+    queryKey: ['objectives', iapId],
+    queryFn: async () =>
+      objectiveService.getAll(token()).then((data) =>
+        data
+          .filter((d) => d.iapId === iapId)
+          .map((a) => ({
+            row: a,
+            actions: [],
+          })),
+      ),
+  });
+
+  if (objectiveError) {
+    throw objectiveError;
+  }
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -113,7 +154,7 @@ export default function ViewIAP() {
   const open = Boolean(anchorEl);
   const popId = open ? 'simple-popover' : undefined;
 
-  if (isIapLoading || isActivitiesLoading) {
+  if (isIapLoading || isActivitiesLoading || isObjectivesLoading) {
     return <CircularProgress />;
   }
 
@@ -134,7 +175,7 @@ export default function ViewIAP() {
         </Typography>
         <Divider>Activities:</Divider>
         <FilterableTable
-          columns={columns}
+          columns={activityColumns}
           sortBy={'name'}
           rows={activityList || []}
         />
@@ -155,7 +196,11 @@ export default function ViewIAP() {
       <Grid2>
         <Divider sx={{ mt: 2 }}>Objectives:</Divider>
 
-        <FilterableTable columns={[]} sortBy={'name'} rows={[]} />
+        <FilterableTable
+          columns={objectiveColumns}
+          sortBy={'name'}
+          rows={objectiveList || []}
+        />
       </Grid2>
     </Grid2>
   );

@@ -58,13 +58,13 @@ export class ActivitiesService {
   }
 
   async findOneActivityMetrics(id: string): Promise<AnalyticsContract> {
-    const activity = this.findOneActivity(id);
+    const activity = await this.findOneActivity(id);
 
     if (!activity) {
       throw new BadRequestException(`Activity ${id} not found.`);
     }
 
-    const ap = await this.findOneActivityProvider(id);
+    const ap = await this.findOneActivityProvider(activity.activityProviderId);
 
     return await this.activityProvidersClient.getAnalyticsContract(ap.url);
   }

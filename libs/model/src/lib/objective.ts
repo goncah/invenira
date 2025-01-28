@@ -6,6 +6,7 @@ export const ObjectiveSchema = z
     name: z.string().nonempty(),
     iapId: z.string().nonempty(),
     formula: z.string().nonempty(),
+    targetValue: z.number(),
     value: z.number(),
     createdAt: z.date(),
     createdBy: z.string().nonempty(),
@@ -23,6 +24,7 @@ export const CreateObjectiveSchema = z
     name: z.string().nonempty(),
     iapId: z.string().nonempty(),
     formula: z.string().nonempty(),
+    targetValue: z.number(),
   })
   .strict();
 

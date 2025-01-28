@@ -101,62 +101,17 @@ export class IapsService {
       throw new NotFoundException(`IAP with Id ${id} not found`);
     }
 
-    const metrics = await iap.activityIds
-      .map(async (activityId: string) => {
+    return Promise.all(
+      iap.activityIds.map(async (activityId: string) => {
         const activity =
           await this.activitiesService.findOneActivity(activityId);
         const metrics =
           await this.activitiesService.findOneActivityMetrics(activityId);
 
-        return {
-          id: activity.name.replace(/[^a-zA-Z]/g, ''),
-          metrics: metrics,
-        };
-      })
-      .reduce(async (pv, cv) => {
-        const previous = await pv;
-        const current = await cv;
-
-        current.metrics.qualAnalytics = current.metrics.qualAnalytics.map(
-          (q) => {
-            return {
-              name: current.id + '.' + q.name,
-              type: q.type,
-            };
-          },
-        );
-
-        current.metrics.quantAnalytics = current.metrics.quantAnalytics.map(
-          (q) => {
-            return {
-              name: current.id + '.' + q.name,
-              type: q.type,
-            };
-          },
-        );
-
-        if (!previous) {
-          return current;
-        }
-
-        previous.metrics.qualAnalytics.forEach((q) => {
-          current.metrics.qualAnalytics.push({
-            name: previous.id + '.' + q.name,
-            type: q.type,
-          });
-        });
-
-        previous.metrics.quantAnalytics.forEach((q) => {
-          current.metrics.quantAnalytics.push({
-            name: previous.id + '.' + q.name,
-            type: q.type,
-          });
-        });
-
-        return current;
-      });
-
-    return metrics.metrics.qualAnalytics.map((q) => q.name);
+        const id = activity.name.replace(/[^a-zA-Z0-9]/g, '');
+        return metrics.quantAnalytics.map((qa) => id + '_' + qa.name);
+      }),
+    ).then((results) => results.flat());
   }
 
   async update(id: string, updateIapDto: UpdateIap): Promise<Iap> {

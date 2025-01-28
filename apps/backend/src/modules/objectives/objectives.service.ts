@@ -4,6 +4,8 @@ import { ObjectiveEntity } from './objective.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { IapsService } from '../iaps/iaps.service';
+import { evaluate } from 'mathjs';
+import { BadRequestException } from '../../exceptions/bad.request.exception';
 
 @Injectable()
 export class ObjectivesService {
@@ -18,6 +20,19 @@ export class ObjectivesService {
 
     if (!iap) {
       throw new NotFoundException(`IAP ${createObjective.iapId} not found`);
+    }
+
+    const metrics = await this.iapsService.findMetrics(createObjective.iapId);
+    const vars = new Map<string, number>();
+
+    metrics.forEach((metric) => {
+      vars.set(metric, 0);
+    });
+
+    try {
+      createObjective['value'] = evaluate(createObjective.formula, vars);
+    } catch (e) {
+      throw new BadRequestException(`Invalid formula: ${e.message}`);
     }
 
     return this.objectiveModel.create(createObjective);
