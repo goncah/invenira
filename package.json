@@ -1,6 +1,6 @@
 {
   "name": "@invenira/source",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "license": "MIT",
   "scripts": {
     "backend:dev": "nx run backend:serve",
@@ -38,6 +38,8 @@
     "chalk": "^5.4.1",
     "dayjs": "^1.11.13",
     "dompurify": "^3.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "mathjs": "^14.1.0",
     "mongoose": "^8.8.4",
     "motion": "^11.16.1",
     "passport": "^0.7.0",
@@ -47,7 +49,8 @@
     "react-error-boundary": "^5.0.0",
     "react-oidc-context": "^3.2.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.5",
@@ -80,6 +83,7 @@
     "@testing-library/react": "15.0.6",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.12",
+    "@types/jsonwebtoken": "^9.0.8",
     "@types/node": "^22.10.2",
     "@types/passport-jwt": "^4.0.1",
     "@types/react": "^18.3.12",

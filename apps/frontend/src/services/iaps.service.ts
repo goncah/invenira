@@ -52,4 +52,11 @@ export class IAPsService {
   async deploy(id: string, token: string): Promise<Iap> {
     return patchRequest(api_hostname + '/iaps/' + id + '/deploy', token, {});
   }
+
+  async getMetrics(id: string, token: string): Promise<string[]> {
+    return getRequest(
+      api_hostname + '/iaps/' + id + '/activities/metrics',
+      token,
+    );
+  }
 }

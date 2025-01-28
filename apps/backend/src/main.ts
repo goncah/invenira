@@ -13,32 +13,22 @@ import { time, timeDiff } from './monotonic.clock';
 import { BadRequestExceptionFilter } from './filters/bad.request.filter';
 import { UnauthorizedExceptionFilter } from './filters/unauthorized.filter';
 
-const cors_opt = {
-  origin: ['*'],
-  allowedHeaders: [
-    'Access-Control-Allow-Origin',
-    'Origin',
-    'X-Requested-With',
-    'Accept',
-    'Content-Type',
-    'Authorization',
-  ],
-  exposedHeaders: 'Authorization',
-  credentials: true,
-  methods: ['GET', 'PUT', 'OPTIONS', 'POST', 'DELETE'],
-};
-
 (async () => {
   const startUp = time();
-  const adapter = new FastifyAdapter();
-  adapter.enableCors(cors_opt);
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    adapter,
+    new FastifyAdapter(),
     {
       logger: logger,
     },
   );
+
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
 
   const config = new DocumentBuilder()
     .setTitle('Inven!RA Backend API')

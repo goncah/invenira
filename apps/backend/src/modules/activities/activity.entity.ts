@@ -5,9 +5,10 @@ import { Activity } from '@invenira/model';
 export type ActivityDocument = HydratedDocument<ActivityEntity>;
 
 @Schema({ collection: 'activities', timestamps: true })
-export class ActivityEntity extends Document implements Activity {
-  _id: string;
-
+export class ActivityEntity
+  extends Document<string, never, Activity>
+  implements Activity
+{
   @Prop({ required: true, unique: true })
   name: string;
 
@@ -18,8 +19,8 @@ export class ActivityEntity extends Document implements Activity {
   })
   activityProviderId: string;
 
-  @Prop()
-  parameters: Map<string, any>;
+  @Prop({ required: true, type: Map, default: {} })
+  parameters: { [k: string]: unknown };
 
   createdAt: Date;
 

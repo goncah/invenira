@@ -6,11 +6,9 @@ export type ActivityProviderDocument = HydratedDocument<ActivityProviderEntity>;
 
 @Schema({ collection: 'activity_providers', timestamps: true })
 export class ActivityProviderEntity
-  extends Document
+  extends Document<string, never, ActivityProvider>
   implements ActivityProvider
 {
-  _id: string;
-
   @Prop({ required: true, unique: true })
   name: string;
 

@@ -19,7 +19,7 @@ module.exports = async function () {
       reject(`Docker error: ${err}`);
     });
 
-    docker.on('close', (err) => {
+    docker.on('close', () => {
       resolve('');
     });
   });

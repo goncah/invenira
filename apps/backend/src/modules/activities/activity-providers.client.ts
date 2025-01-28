@@ -3,10 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import { AxiosInstance } from 'axios';
 import { Injectable } from '@nestjs/common';
 import {
+  httpPathAnalyticsContract,
   httpPathConfigInterface,
   httpPathConfigPar,
   httpPathDeployActivity,
 } from '../../config.defaults';
+import { AnalyticsContract, AnalyticsContractSchema } from '@invenira/model';
 
 @Injectable()
 export class ActivityProvidersClient {
@@ -14,12 +16,33 @@ export class ActivityProvidersClient {
   private readonly pathConfigPar: string;
   private readonly pathConfigInterface: string;
   private readonly pathDeployActivity: string;
+  private readonly pathAnalyticsContract: string;
 
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
     this.axios = this.httpService.axiosRef as AxiosInstance; // required for ncc
+
+    this.pathAnalyticsContract =
+      this.configService.get<string>('APC_PATH_ANALYTICS_CONTRACT') ||
+      httpPathAnalyticsContract;
+
+    if (!this.pathAnalyticsContract.startsWith('/')) {
+      this.pathAnalyticsContract = '/' + this.pathAnalyticsContract;
+    }
+
+    this.pathDeployActivity =
+      this.configService.get<string>('APC_PATH_DEPLOY_ACTIVITY') ||
+      httpPathDeployActivity;
+
+    if (this.pathDeployActivity.endsWith('/')) {
+      this.pathDeployActivity = this.pathDeployActivity.substring(
+        0,
+        this.pathDeployActivity.length - 1,
+      );
+    }
+
     this.pathConfigPar =
       this.configService.get<string>('APC_PATH_CONFIG_PAR') ||
       httpPathConfigPar;
@@ -66,6 +89,20 @@ export class ActivityProvidersClient {
     }
   }
 
+  async getAnalyticsContract(baseUrl: string): Promise<AnalyticsContract> {
+    return this.axios
+      .get<Record<string, string>[]>(baseUrl + this.pathAnalyticsContract)
+      .then((response) => {
+        if (response.status === 200) {
+          return AnalyticsContractSchema.parse(
+            response.data,
+          ) as AnalyticsContract;
+        } else {
+          throw new Error(response.statusText);
+        }
+      });
+  }
+
   async getActivityParameters(baseUrl: string): Promise<string[]> {
     return this.axios
       .get<Record<string, string>[]>(baseUrl + this.pathConfigPar)
@@ -103,7 +140,7 @@ export class ActivityProvidersClient {
     url: string,
     activityId: string,
     userId: string,
-    params: Map<string, unknown>,
+    params: Record<string, unknown>,
   ): Promise<string> {
     return this.axios
       .post<Record<string, string>>(url, {

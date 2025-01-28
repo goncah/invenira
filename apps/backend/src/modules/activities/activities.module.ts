@@ -2,14 +2,14 @@ import { Module } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { ActivitiesController } from './activities.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ActivityEntity, ActivitySchema } from './entities/activity.entity';
+import { ActivityEntity, ActivitySchema } from './activity.entity';
 import { logger } from '../../invenira.logger';
 import { ActivityProvidersController } from './activity-providers.controller';
 import { ActivityProvidersClient } from './activity-providers.client';
 import {
   ActivityProviderEntity,
   ActivityProviderSchema,
-} from './entities/activity-provider.entity';
+} from './activity-provider.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { UsersModule } from '../users/users.module';

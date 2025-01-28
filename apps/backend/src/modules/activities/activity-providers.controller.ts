@@ -3,38 +3,37 @@ import {
   Controller,
   Delete,
   Get,
-  HttpStatus,
   Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { CreateActivityProviderDto } from './dto/create-activity-provider.dto';
-import { UpdateActivityProviderDto } from './dto/update-activity-provider.dto';
-import { ApiResponse } from '@nestjs/swagger';
-import { ActivityProviderEntity } from './entities/activity-provider.entity';
 import { ActivitiesService } from './activities.service';
-import { ConfigInterfaceDto } from './dto/config-interface.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { INSTRUCTOR_ROLES, Roles } from '../auth/roles.decorator';
 import { AuthorizedUser } from '../auth/user.decorator';
-import { ActivityProvider } from '@invenira/model';
+import {
+  ActivityProvider,
+  ConfigInterface,
+  CreateActivityProvider,
+  CreateActivityProviderSchema,
+  UpdateActivityProvider,
+  UpdateActivityProviderSchema,
+} from '@invenira/model';
 import { MongoId } from '../../mongo-id';
+import { ZodValidationPipe } from '../../pipes/zod-validation.pipe';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activity-providers')
 export class ActivityProvidersController {
   constructor(private readonly activitiesService: ActivitiesService) {}
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ActivityProviderEntity,
-  })
   @Roles('app_admin')
   @Post()
   async create(
     @AuthorizedUser() user: string,
-    @Body() createActivityProviderDto: CreateActivityProviderDto,
+    @Body(new ZodValidationPipe(CreateActivityProviderSchema))
+    createActivityProviderDto: CreateActivityProvider,
   ): Promise<ActivityProvider> {
     createActivityProviderDto['createdBy'] = user;
     createActivityProviderDto['updatedBy'] = user;
@@ -43,56 +42,37 @@ export class ActivityProvidersController {
     );
   }
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: [ActivityProviderEntity],
-  })
   @Roles(...INSTRUCTOR_ROLES)
   @Get()
   async findAll(): Promise<ActivityProvider[]> {
     return this.activitiesService.findAllActivityProviders();
   }
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ActivityProviderEntity,
-  })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id')
   async findOne(@MongoId() id: string): Promise<ActivityProvider> {
     return this.activitiesService.findOneActivityProvider(id);
   }
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ActivityProviderEntity,
-  })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id/config-interface')
-  async getConfigInterface(@MongoId() id: string): Promise<ConfigInterfaceDto> {
+  async getConfigInterface(@MongoId() id: string): Promise<ConfigInterface> {
     return this.activitiesService.getConfigurationInterfaceUrl(id);
   }
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ActivityProviderEntity,
-  })
   @Roles(...INSTRUCTOR_ROLES)
   @Get(':id/config-params')
   async getConfigParameters(@MongoId() id: string): Promise<string[]> {
     return this.activitiesService.getActivityParameters(id);
   }
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ActivityProviderEntity,
-  })
   @Roles('app_admin')
   @Patch(':id')
   async update(
     @AuthorizedUser() user: string,
     @MongoId() id: string,
-    @Body() updateActivityProviderDto: UpdateActivityProviderDto,
+    @Body(new ZodValidationPipe(UpdateActivityProviderSchema))
+    updateActivityProviderDto: UpdateActivityProvider,
   ): Promise<ActivityProvider> {
     updateActivityProviderDto['updatedBy'] = user;
     return this.activitiesService.updateActivityProvider(
@@ -101,10 +81,6 @@ export class ActivityProvidersController {
     );
   }
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: ActivityProviderEntity,
-  })
   @Roles('app_admin')
   @Delete(':id')
   async remove(@MongoId() id: string): Promise<void> {

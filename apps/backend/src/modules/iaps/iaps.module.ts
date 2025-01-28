@@ -4,7 +4,7 @@ import { IapsController } from './iaps.controller';
 import { ActivitiesModule } from '../activities/activities.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { logger } from '../../invenira.logger';
-import { IapEntity, IapSchema } from './entities/iap.entity';
+import { IapEntity, IapSchema } from './iap.entity';
 
 @Module({
   imports: [
@@ -26,5 +26,6 @@ import { IapEntity, IapSchema } from './entities/iap.entity';
   ],
   controllers: [IapsController],
   providers: [IapsService],
+  exports: [IapsService],
 })
 export class IapsModule {}

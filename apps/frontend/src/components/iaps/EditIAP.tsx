@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { IAPsService } from '../../services/iaps.service';
 import { useAuth } from 'react-oidc-context';
-import { ActivityKey } from '@invenira/model';
+import { ActivityKey, ObjectiveKey } from '@invenira/model';
 import { ActivitiesService } from '../../services/activities.service';
 import {
   FilterableTable,
@@ -19,22 +19,43 @@ import { useError } from '../layout/Layout';
 import MenuItem from '@mui/material/MenuItem';
 import { router } from '../../App';
 import { useSearch } from '@tanstack/react-router';
+import { ObjectivesService } from '../../services/objectives.service';
 
-const columns = [
+const activityColumns = [
   {
     id: 'name' as ActivityKey,
     name: 'Name',
   },
 ];
 
+const objectiveColumns = [
+  {
+    id: 'name' as ObjectiveKey,
+    name: 'Name',
+  },
+  {
+    id: 'formula' as ObjectiveKey,
+    name: 'Formula',
+  },
+  {
+    id: 'targetValue' as ObjectiveKey,
+    name: 'Target Value',
+  },
+];
+
 export default function EditIAP() {
   const auth = useAuth();
   const [openAdd, setOpenAdd] = useState(false);
+  const [openAddObjective, setOpenAddObjective] = useState(false);
   const [activityId, setActivityId] = useState<string>('');
+  const [name, setName] = useState<string>('');
+  const [formula, setFormula] = useState<string>('');
+  const [targetValue, setTargetValue] = useState<number>(0);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<{
     id: string;
     name: string;
+    type: 'activity' | 'objective';
   } | null>(null);
   const search = useSearch({ from: '/edit-iap' });
   const [iapId] = useState<string>(search?.id || '');
@@ -46,6 +67,10 @@ export default function EditIAP() {
 
   const activityService = useMemo(() => {
     return new ActivitiesService();
+  }, []);
+
+  const objectiveService = useMemo(() => {
+    return new ObjectivesService();
   }, []);
 
   const token = () => {
@@ -110,18 +135,42 @@ export default function EditIAP() {
   }
 
   const {
+    data: iapMetrics,
+    isLoading: isIapMetricsLoading,
+    error: iapMetricsError,
+  } = useQuery({
+    queryKey: ['iap-metrics', iapId],
+    queryFn: async () => iapService.getMetrics(iapId, token()),
+  });
+
+  if (iapMetricsError) {
+    throw iapMetricsError;
+  }
+
+  const {
     data: activityList,
     isLoading: isActivitiesLoading,
     error: atError,
   } = useQuery({
     queryKey: ['activities'],
-    queryFn: async () => {
-      return activityService.getAll(token());
-    },
+    queryFn: async () => activityService.getAll(token()),
   });
 
   if (atError) {
     throw atError;
+  }
+
+  const {
+    data: objectiveList,
+    isLoading: isObjectivesLoading,
+    error: objectiveError,
+  } = useQuery({
+    queryKey: ['objectives', iapId],
+    queryFn: async () => objectiveService.getAll(token()),
+  });
+
+  if (objectiveError) {
+    throw objectiveError;
   }
 
   const addActivityMutation = useMutation({
@@ -131,7 +180,7 @@ export default function EditIAP() {
 
     onSuccess: () => {
       queryClient
-        .invalidateQueries({ queryKey: ['iap'] })
+        .invalidateQueries()
         .then(() => setActivityId(''))
         .then(() => setOpenAdd(false));
     },
@@ -150,12 +199,23 @@ export default function EditIAP() {
     },
 
     onSuccess: () => {
-      queryClient
-        .invalidateQueries({ queryKey: ['iap'] })
-        .then(() => closeRemoveConfirmation());
+      queryClient.invalidateQueries().then(() => closeRemoveConfirmation());
     },
     onError: () => {
       showError('Failed to remove the activity.');
+    },
+  });
+
+  const removeObjectiveMutation = useMutation({
+    mutationFn: async () => {
+      await objectiveService.delete(removeTarget?.id || '', token());
+    },
+
+    onSuccess: () => {
+      queryClient.invalidateQueries().then(() => closeRemoveConfirmation());
+    },
+    onError: () => {
+      showError('Failed to remove the objective.');
     },
   });
 
@@ -172,14 +232,47 @@ export default function EditIAP() {
     },
   });
 
+  const addObjectiveMutation = useMutation({
+    mutationFn: async () => {
+      const obj = {
+        name,
+        iapId: iap?._id || '',
+        formula,
+        targetValue,
+      };
+
+      await objectiveService.create(obj, token());
+    },
+
+    onSuccess: () => {
+      queryClient
+        .invalidateQueries({ queryKey: ['objectives'] })
+        .then(() => setOpenAddObjective(false))
+        .then(() => setName(''))
+        .then(() => setFormula(''))
+        .then(() => setTargetValue(0));
+    },
+    onError: () => {
+      showError('Failed to add the objective.');
+    },
+  });
+
   const mutations = {
     add: () => addActivityMutation.mutate(),
-    remove: () => removeActivityMutation.mutate(),
+    remove: () =>
+      removeTarget?.type === 'activity'
+        ? removeActivityMutation.mutate()
+        : removeObjectiveMutation.mutate(),
     deploy: () => deployMutation.mutate(),
+    addObjective: () => addObjectiveMutation.mutate(),
   };
 
-  const openRemoveConfirmation = (id: string, name: string) => {
-    setRemoveTarget({ id, name });
+  const openRemoveConfirmation = (
+    id: string,
+    name: string,
+    type: 'activity' | 'objective',
+  ) => {
+    setRemoveTarget({ id, name, type });
     setConfirmRemove(true);
   };
 
@@ -206,7 +299,24 @@ export default function EditIAP() {
           key={`btn-${a._id}-${idx}`}
           variant="outlined"
           color="secondary"
-          onClick={() => openRemoveConfirmation(a._id, a.name)}
+          onClick={() => openRemoveConfirmation(a._id, a.name, 'activity')}
+          sx={{ marginLeft: 1 }}
+        >
+          Remove
+        </Button>,
+      ],
+    }));
+
+  const iapObjectives = objectiveList
+    ?.filter((o) => o.iapId === iapId)
+    .map((a, idx) => ({
+      row: a,
+      actions: [
+        <Button
+          key={`btn-${a._id}-${idx}`}
+          variant="outlined"
+          color="secondary"
+          onClick={() => openRemoveConfirmation(a._id, a.name, 'objective')}
           sx={{ marginLeft: 1 }}
         >
           Remove
@@ -218,7 +328,26 @@ export default function EditIAP() {
     (a) => !iaps?.find((i) => i?.activityIds?.includes(a._id)),
   );
 
-  if (isIapsLoading || isIapLoading || isActivitiesLoading) {
+  const handleOpenAddObjective = () => setOpenAddObjective(true);
+
+  const handleCancelAddObjective = () => {
+    setOpenAddObjective(false);
+    setFormula('');
+    setName('');
+    setTargetValue(0);
+  };
+
+  const handleFormulaChange = (value: string) => {
+    setFormula((prev) => `${prev} ${value}`.trim());
+  };
+
+  if (
+    isIapsLoading ||
+    isIapLoading ||
+    isIapMetricsLoading ||
+    isActivitiesLoading ||
+    isObjectivesLoading
+  ) {
     return <CircularProgress />;
   }
 
@@ -251,7 +380,7 @@ export default function EditIAP() {
         </Container>
         <Divider>Activities:</Divider>
         <FilterableTable
-          columns={columns}
+          columns={activityColumns}
           sortBy={'name'}
           rows={iapActivities || []}
         />
@@ -267,7 +396,11 @@ export default function EditIAP() {
       <Grid2>
         <Divider>Objectives:</Divider>
 
-        <FilterableTable columns={[]} sortBy={'name'} rows={[]} />
+        <FilterableTable
+          columns={objectiveColumns}
+          sortBy={'name'}
+          rows={iapObjectives || []}
+        />
 
         <Container
           sx={{ marginTop: 2, display: 'flex', justifyContent: 'flex-end' }}
@@ -276,6 +409,7 @@ export default function EditIAP() {
             variant="contained"
             color="primary"
             disabled={iap?.activityIds?.length === 0}
+            onClick={handleOpenAddObjective}
           >
             Add
           </Button>
@@ -319,9 +453,76 @@ export default function EditIAP() {
         </Box>
       </SmoothModal>
 
+      <SmoothModal
+        open={openAddObjective}
+        onClose={handleCancelAddObjective}
+        fullscreen={false}
+      >
+        <Box sx={style}>
+          <h2>Add Objective</h2>
+          <TextField
+            label="Name"
+            fullWidth
+            margin="normal"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <TextField
+            label="Formula"
+            fullWidth
+            margin="normal"
+            value={formula}
+            onChange={(e) => setFormula(e.target.value)}
+          />
+          <TextField
+            label="Target Value"
+            fullWidth
+            margin="normal"
+            slotProps={{
+              htmlInput: {
+                inputMode: 'numeric',
+                pattern: '[0-9]*',
+              },
+            }}
+            value={targetValue}
+            onChange={(e) => setTargetValue(Number(e.target.value))}
+          />
+          <TextField
+            select
+            fullWidth
+            margin="normal"
+            label="Select Metrics"
+            value={''}
+            onChange={(e) => handleFormulaChange(e.target.value)}
+          >
+            {iapMetrics?.map((metric: string, idx) => (
+              <MenuItem key={'metric_' + idx} value={metric}>
+                {metric}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={mutations.addObjective}
+            style={{ marginTop: 16 }}
+          >
+            Save
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleCancelAddObjective}
+            style={{ marginTop: 16, marginLeft: 5 }}
+          >
+            Cancel
+          </Button>
+        </Box>
+      </SmoothModal>
+
       <SmoothDialog
         title={'Remove Confirmation'}
-        content={`Are you sure you want to remove the activity ${removeTarget?.name}?`}
+        content={`Are you sure you want to remove the ${removeTarget?.type === 'activity' ? 'activity' : 'objective'} ${removeTarget?.name}?`}
         open={confirmRemove}
         onClose={closeRemoveConfirmation}
         onConfirm={mutations.remove}

@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { UpdateActivityDto } from './dto/update-activity.dto';
-import { ActivityEntity } from './entities/activity.entity';
+import { ActivityEntity } from './activity.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BadRequestException } from '../../exceptions/bad.request.exception';
-import { CreateActivityProviderDto } from './dto/create-activity-provider.dto';
-import { ActivityProviderEntity } from './entities/activity-provider.entity';
-import { UpdateActivityProviderDto } from './dto/update-activity-provider.dto';
+import { ActivityProviderEntity } from './activity-provider.entity';
 import { ActivityProvidersClient } from './activity-providers.client';
-import { ConfigInterfaceDto } from './dto/config-interface.dto';
 import { EventBusService } from '../utils/event-bus-service';
-import { Activity, ActivityProvider } from '@invenira/model';
-import { CreateActivityDto } from './dto/create-activity.dto';
+import {
+  Activity,
+  ActivityProvider,
+  AnalyticsContract,
+  ConfigInterface,
+  CreateActivity,
+  CreateActivityProvider,
+  UpdateActivity,
+  UpdateActivityProvider,
+} from '@invenira/model';
 import { AxiosInstance } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { UsersService } from '../users/users.service';
@@ -33,9 +37,7 @@ export class ActivitiesService {
     this.axios = this.httpService.axiosRef as AxiosInstance; // required for ncc
   }
 
-  async createActivity(
-    createActivityDto: CreateActivityDto,
-  ): Promise<Activity> {
+  async createActivity(createActivityDto: CreateActivity): Promise<Activity> {
     const par = await this.getActivityParameters(
       createActivityDto.activityProviderId,
     );
@@ -55,13 +57,25 @@ export class ActivitiesService {
     return await this.activityModel.findOne({ _id: id }).exec();
   }
 
+  async findOneActivityMetrics(id: string): Promise<AnalyticsContract> {
+    const activity = await this.findOneActivity(id);
+
+    if (!activity) {
+      throw new BadRequestException(`Activity ${id} not found.`);
+    }
+
+    const ap = await this.findOneActivityProvider(activity.activityProviderId);
+
+    return await this.activityProvidersClient.getAnalyticsContract(ap.url);
+  }
+
   async updateActivity(
     id: string,
-    updateActivityDto: UpdateActivityDto,
+    updateActivityDto: UpdateActivity,
   ): Promise<Activity> {
     const par = await this.getActivityParameters(id);
 
-    if (!par.every((e) => updateActivityDto.parameters.has(e))) {
+    if (!par.every((e) => e in updateActivityDto.parameters)) {
       throw new BadRequestException('Missing parameters');
     }
 
@@ -90,7 +104,7 @@ export class ActivitiesService {
   }
 
   async createActivityProvider(
-    createActivityProviderDto: CreateActivityProviderDto,
+    createActivityProviderDto: CreateActivityProvider,
   ): Promise<ActivityProvider> {
     if (createActivityProviderDto.url.endsWith('/')) {
       createActivityProviderDto.url = createActivityProviderDto.url.substring(
@@ -114,7 +128,7 @@ export class ActivitiesService {
     return await this.activityProviderModel.findOne({ _id: id }).exec();
   }
 
-  async getConfigurationInterfaceUrl(id: string): Promise<ConfigInterfaceDto> {
+  async getConfigurationInterfaceUrl(id: string): Promise<ConfigInterface> {
     const ap = await this.findOneActivityProvider(id);
     const url = await this.activityProvidersClient.getConfigInterface(ap.url);
 
@@ -123,7 +137,7 @@ export class ActivitiesService {
 
   async updateActivityProvider(
     id: string,
-    updateActivityProviderDto: UpdateActivityProviderDto,
+    updateActivityProviderDto: UpdateActivityProvider,
   ): Promise<ActivityProvider> {
     if (updateActivityProviderDto.url.endsWith('/')) {
       updateActivityProviderDto.url = updateActivityProviderDto.url.substring(
@@ -185,7 +199,7 @@ export class ActivitiesService {
     try {
       activityUrl = JSON.parse(atob(data)).activityUrl;
     } catch (e) {
-      throw new BadRequestException('Invalid Data!');
+      throw new BadRequestException('Invalid Data: ' + e.message);
     }
 
     const user = await this.usersService.create({ lmsStudentId: userId });
