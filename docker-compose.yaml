@@ -67,7 +67,7 @@ services:
   invenira-backend:
     container_name: invenira-backend
     hostname: invenira-backend
-    image: ghcr.io/goncah/invenira-backend:0.0.6
+    image: ghcr.io/goncah/invenira-backend:0.0.7
     depends_on:
       invenira-keycloak:
         condition: service_healthy
@@ -81,7 +81,7 @@ services:
   invenira-frontend:
     container_name: invenira-frontend
     hostname: invenira-frontend
-    image: ghcr.io/goncah/invenira-frontend:0.0.6
+    image: ghcr.io/goncah/invenira-frontend:0.0.7
     depends_on:
       invenira-keycloak:
         condition: service_healthy
