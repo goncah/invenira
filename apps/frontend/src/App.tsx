@@ -17,6 +17,7 @@ import ViewIAP from './components/iaps/ViewIAP';
 import EditIAP from './components/iaps/EditIAP';
 import Logout from './components/Logout';
 import { AnimatePresence, motion } from 'framer-motion';
+import ViewObjective from './components/objectives/ViewObjective';
 
 const pageTransitionVariants = {
   initial: { opacity: 0, y: 20 },
@@ -109,6 +110,16 @@ const viewIapRoute = createRoute({
   ),
 });
 
+const viewObjectiveRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/view-objective',
+  component: () => (
+    <AnimateChildren>
+      <ViewObjective />
+    </AnimateChildren>
+  ),
+});
+
 const logoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/logout',
@@ -128,6 +139,7 @@ const routeTree = rootRoute.addChildren([
   activityProvidersRoute,
   editIapRoute,
   viewIapRoute,
+  viewObjectiveRoute,
   logoutRoute,
   configInterfaceRoute,
 ]);

@@ -5,10 +5,12 @@ import { ObjectiveEntity, ObjectiveEntitySchema } from './objective.entity';
 import { logger } from '../../invenira.logger';
 import { MongooseModule } from '@nestjs/mongoose';
 import { IapsModule } from '../iaps/iaps.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     IapsModule,
+    UsersModule,
     MongooseModule.forFeatureAsync([
       {
         name: ObjectiveEntity.name,

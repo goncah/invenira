@@ -58,8 +58,12 @@ export default function EditIAP() {
     type: 'activity' | 'objective';
   } | null>(null);
   const search = useSearch({ from: '/edit-iap' });
-  const [iapId] = useState<string>(search?.id || '');
+  const [iapId] = useState<string>(search?.id?.toString() || '');
   const { showError } = useError();
+
+  if (!iapId.trim()) {
+    throw new Error('IAP ID is required');
+  }
 
   const iapService = useMemo(() => {
     return new IAPsService();

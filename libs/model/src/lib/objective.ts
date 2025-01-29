@@ -42,3 +42,18 @@ export const UpdateObjectiveSchema = z
   .strict();
 
 export type UpdateObjective = Required<z.infer<typeof UpdateObjectiveSchema>>;
+
+export const StudentObjectiveSchema = ObjectiveSchema.extend({
+  inveniraStdID: z.string().nonempty(),
+  lmsStdID: z.string().nonempty(),
+}).strict();
+
+export type StudentObjective = Required<z.infer<typeof StudentObjectiveSchema>>;
+
+export type StudentObjectiveKey = keyof StudentObjective;
+
+export const StudentObjectiveArraySchema = z.array(StudentObjectiveSchema);
+
+export type StudentObjectiveArray = Required<
+  z.infer<typeof StudentObjectiveArraySchema>
+>;
