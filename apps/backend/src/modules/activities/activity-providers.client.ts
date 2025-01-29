@@ -3,12 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { AxiosInstance } from 'axios';
 import { Injectable } from '@nestjs/common';
 import {
+  httpPathAnalytics,
   httpPathAnalyticsContract,
   httpPathConfigInterface,
   httpPathConfigPar,
   httpPathDeployActivity,
 } from '../../config.defaults';
-import { AnalyticsContract, AnalyticsContractSchema } from '@invenira/model';
+import {
+  AnalyticsArray,
+  AnalyticsArraySchema,
+  AnalyticsContract,
+  AnalyticsContractSchema,
+} from '@invenira/model';
 
 @Injectable()
 export class ActivityProvidersClient {
@@ -17,6 +23,7 @@ export class ActivityProvidersClient {
   private readonly pathConfigInterface: string;
   private readonly pathDeployActivity: string;
   private readonly pathAnalyticsContract: string;
+  private readonly pathAnalytics: string;
 
   constructor(
     private readonly httpService: HttpService,
@@ -30,6 +37,13 @@ export class ActivityProvidersClient {
 
     if (!this.pathAnalyticsContract.startsWith('/')) {
       this.pathAnalyticsContract = '/' + this.pathAnalyticsContract;
+    }
+
+    this.pathAnalytics =
+      this.configService.get<string>('APC_PATH_ANALYTICS') || httpPathAnalytics;
+
+    if (!this.pathAnalytics.startsWith('/')) {
+      this.pathAnalytics = '/' + this.pathAnalytics;
     }
 
     this.pathDeployActivity =
@@ -97,6 +111,23 @@ export class ActivityProvidersClient {
           return AnalyticsContractSchema.parse(
             response.data,
           ) as AnalyticsContract;
+        } else {
+          throw new Error(response.statusText);
+        }
+      });
+  }
+
+  async getAnalytics(
+    baseUrl: string,
+    activityId: string,
+  ): Promise<AnalyticsArray> {
+    return this.axios
+      .post<Record<string, string>[]>(baseUrl + this.pathAnalytics, {
+        activityID: activityId,
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          return AnalyticsArraySchema.parse(response.data) as AnalyticsArray;
         } else {
           throw new Error(response.statusText);
         }

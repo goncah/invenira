@@ -51,6 +51,12 @@ export class ObjectivesController {
   }
 
   @Roles(...INSTRUCTOR_ROLES)
+  @Get(':id/details')
+  getOne(@MongoId() id: string) {
+    return this.objectivesService.getOne(id);
+  }
+
+  @Roles(...INSTRUCTOR_ROLES)
   @Patch(':id')
   update(
     @AuthorizedUser() user: string,

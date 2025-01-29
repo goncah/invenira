@@ -32,14 +32,22 @@ const objectiveColumns = [
     id: 'targetValue' as ObjectiveKey,
     name: 'Target Value',
   },
+  {
+    id: 'value' as ObjectiveKey,
+    name: 'Current Value (AVG)',
+  },
 ];
 
 export default function ViewIAP() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [url, setUrl] = useState('');
   const search = useSearch({ from: '/view-iap' });
-  const [iapId] = useState<string>(search?.id || '');
+  const [iapId] = useState<string>(search?.id?.toString() || '');
   const auth = useAuth();
+
+  if (!iapId.trim()) {
+    throw new Error('IAP ID is required');
+  }
 
   const iapService = useMemo(() => {
     return new IAPsService();
@@ -122,6 +130,10 @@ export default function ViewIAP() {
     throw atError;
   }
 
+  const handleView = (id: string) => {
+    router.navigate({ to: '/view-objective', search: { id } });
+  };
+
   const {
     data: objectiveList,
     isLoading: isObjectivesLoading,
@@ -134,7 +146,16 @@ export default function ViewIAP() {
           .filter((d) => d.iapId === iapId)
           .map((a) => ({
             row: a,
-            actions: [],
+            actions: [
+              <Button
+                key={`btn-${a._id}-01`}
+                variant="outlined"
+                color="primary"
+                onClick={() => handleView(a._id)}
+              >
+                View
+              </Button>,
+            ],
           })),
       ),
   });

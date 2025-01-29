@@ -5,3 +5,4 @@ export const httpPathConfigPar = '/configuration/parameters';
 export const httpPathConfigInterface = '/configuration/interface';
 export const httpPathDeployActivity = '/activity/deploy';
 export const httpPathAnalyticsContract = '/analytics/contract';
+export const httpPathAnalytics = '/analytics';
