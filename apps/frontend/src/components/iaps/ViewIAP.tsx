@@ -32,6 +32,10 @@ const objectiveColumns = [
     id: 'targetValue' as ObjectiveKey,
     name: 'Target Value',
   },
+  {
+    id: 'value' as ObjectiveKey,
+    name: 'Current Value (AVG)',
+  },
 ];
 
 export default function ViewIAP() {

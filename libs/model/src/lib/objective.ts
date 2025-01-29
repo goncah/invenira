@@ -17,6 +17,10 @@ export const ObjectiveSchema = z
 
 export type Objective = Required<z.infer<typeof ObjectiveSchema>>;
 
+export const ObjectiveArraySchema = z.array(ObjectiveSchema);
+
+export type ObjectiveArray = Required<z.infer<typeof ObjectiveArraySchema>>;
+
 export type ObjectiveKey = keyof Objective;
 
 export const CreateObjectiveSchema = z

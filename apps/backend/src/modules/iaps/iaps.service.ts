@@ -4,7 +4,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ActivitiesService } from '../activities/activities.service';
 import { EventBusService } from '../utils/event-bus-service';
-import { AddActivityToIap, CreateIap, Iap, UpdateIap } from '@invenira/model';
+import {
+  AddActivityToIap,
+  AnalyticsArray,
+  CreateIap,
+  Iap,
+  UpdateIap,
+} from '@invenira/model';
 
 @Injectable()
 export class IapsService {
@@ -110,6 +116,49 @@ export class IapsService {
 
         const id = activity.name.replace(/[^a-zA-Z0-9]/g, '');
         return metrics.quantAnalytics.map((qa) => id + '_' + qa.name);
+      }),
+    ).then((results) => results.flat());
+  }
+
+  async getMetrics(id: string): Promise<AnalyticsArray> {
+    const iap = await this.findOne(id);
+
+    if (!iap) {
+      throw new NotFoundException(`IAP with Id ${id} not found`);
+    }
+
+    return Promise.all(
+      iap.activityIds.map(async (activityId: string) => {
+        const activity =
+          await this.activitiesService.findOneActivity(activityId);
+        const metrics =
+          await this.activitiesService.getOneActivityMetrics(activityId);
+
+        const id = activity.name.replace(/[^a-zA-Z0-9]/g, '');
+
+        const final: AnalyticsArray = [];
+
+        metrics.forEach((m) => {
+          m.quantAnalytics = m.quantAnalytics.map((qa) => {
+            return {
+              name: id + '_' + qa.name,
+              type: qa.type,
+              value: qa.value,
+            };
+          });
+
+          m.qualAnalytics = m.qualAnalytics.map((qa) => {
+            return {
+              name: id + '_' + qa.name,
+              type: qa.type,
+              value: qa.value,
+            };
+          });
+
+          final.push(m);
+        });
+
+        return final;
       }),
     ).then((results) => results.flat());
   }

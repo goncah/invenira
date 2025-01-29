@@ -9,6 +9,7 @@ import { EventBusService } from '../utils/event-bus-service';
 import {
   Activity,
   ActivityProvider,
+  AnalyticsArray,
   AnalyticsContract,
   ConfigInterface,
   CreateActivity,
@@ -67,6 +68,21 @@ export class ActivitiesService {
     const ap = await this.findOneActivityProvider(activity.activityProviderId);
 
     return await this.activityProvidersClient.getAnalyticsContract(ap.url);
+  }
+
+  async getOneActivityMetrics(id: string): Promise<AnalyticsArray> {
+    const activity = await this.findOneActivity(id);
+
+    if (!activity) {
+      throw new BadRequestException(`Activity ${id} not found.`);
+    }
+
+    const ap = await this.findOneActivityProvider(activity.activityProviderId);
+
+    return await this.activityProvidersClient.getAnalytics(
+      ap.url,
+      activity._id,
+    );
   }
 
   async updateActivity(
