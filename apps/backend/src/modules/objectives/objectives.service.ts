@@ -42,7 +42,9 @@ export class ObjectivesService {
       throw new BadRequestException(`Invalid formula: ${e.message}`);
     }
 
-    return this.objectiveModel.create(createObjective);
+    const objective = await this.objectiveModel.create(createObjective);
+
+    return objective.toObject();
   }
 
   async findAll() {
@@ -81,11 +83,11 @@ export class ObjectivesService {
 
     objectives.forEach((objective) => objective.save());
 
-    return objectives;
+    return objectives.map((o) => o.toObject());
   }
 
   findOne(id: string) {
-    return this.objectiveModel.findOne({ _id: id }).exec();
+    return this.objectiveModel.findOne({ _id: id }).lean();
   }
 
   async getOne(id: string): Promise<StudentObjectiveArray> {
@@ -132,10 +134,10 @@ export class ObjectivesService {
         new: true,
         upsert: true,
       })
-      .exec();
+      .lean();
   }
 
   remove(id: string) {
-    return this.objectiveModel.findByIdAndDelete({ _id: id }).exec();
+    return this.objectiveModel.findByIdAndDelete({ _id: id }).lean();
   }
 }

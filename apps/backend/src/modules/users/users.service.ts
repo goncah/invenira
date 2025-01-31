@@ -19,18 +19,19 @@ export class UsersService {
           return this.userModel.create(createUserDto);
         }
         return user;
-      });
+      })
+      .then((user) => user.toObject());
   }
 
   async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+    return this.userModel.find().lean();
   }
 
   async findOne(id: string): Promise<User> {
-    return this.userModel.findOne({ _id: id }).exec();
+    return this.userModel.findOne({ _id: id }).lean();
   }
 
   async remove(id: string): Promise<User> {
-    return this.userModel.findByIdAndDelete({ _id: id }).exec();
+    return this.userModel.findByIdAndDelete({ _id: id }).lean();
   }
 }

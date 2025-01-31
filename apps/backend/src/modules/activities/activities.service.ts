@@ -17,14 +17,10 @@ import {
   UpdateActivity,
   UpdateActivityProvider,
 } from '@invenira/model';
-import { AxiosInstance } from 'axios';
-import { HttpService } from '@nestjs/axios';
 import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ActivitiesService {
-  private readonly axios: AxiosInstance;
-
   constructor(
     @InjectModel(ActivityEntity.name)
     private activityModel: Model<ActivityEntity>,
@@ -32,11 +28,8 @@ export class ActivitiesService {
     private readonly activityProviderModel: Model<ActivityProviderEntity>,
     private readonly activityProvidersClient: ActivityProvidersClient,
     private eventBus: EventBusService,
-    private readonly httpService: HttpService,
     private readonly usersService: UsersService,
-  ) {
-    this.axios = this.httpService.axiosRef as AxiosInstance; // required for ncc
-  }
+  ) {}
 
   async createActivity(createActivityDto: CreateActivity): Promise<Activity> {
     const par = await this.getActivityParameters(
@@ -47,15 +40,17 @@ export class ActivitiesService {
       throw new BadRequestException('Missing parameters');
     }
 
-    return await this.activityModel.create(createActivityDto);
+    const activity = await this.activityModel.create(createActivityDto);
+
+    return activity.toObject();
   }
 
   async findAllActivities(): Promise<Activity[]> {
-    return await this.activityModel.find().exec();
+    return this.activityModel.find().lean();
   }
 
   async findOneActivity(id: string): Promise<Activity> {
-    return await this.activityModel.findOne({ _id: id }).exec();
+    return this.activityModel.findOne({ _id: id }).lean();
   }
 
   async findOneActivityMetrics(id: string): Promise<AnalyticsContract> {
@@ -95,12 +90,12 @@ export class ActivitiesService {
       throw new BadRequestException('Missing parameters');
     }
 
-    return await this.activityModel
+    return this.activityModel
       .findByIdAndUpdate({ _id: id }, updateActivityDto, {
         new: true,
         upsert: true,
       })
-      .exec();
+      .lean();
   }
 
   async removeActivity(id: string): Promise<Activity> {
@@ -110,7 +105,7 @@ export class ActivitiesService {
       throw new BadRequestException('Activity in use by IAP!');
     }
 
-    return await this.activityModel.findByIdAndDelete({ _id: id }).exec();
+    return this.activityModel.findByIdAndDelete({ _id: id }).lean();
   }
 
   async getActivitiesCountForProvider(providerId: string): Promise<number> {
@@ -133,15 +128,19 @@ export class ActivitiesService {
       createActivityProviderDto.url,
     );
 
-    return await this.activityProviderModel.create(createActivityProviderDto);
+    const ap = await this.activityProviderModel.create(
+      createActivityProviderDto,
+    );
+
+    return ap.toObject();
   }
 
   async findAllActivityProviders(): Promise<ActivityProvider[]> {
-    return await this.activityProviderModel.find().exec();
+    return this.activityProviderModel.find().lean();
   }
 
   async findOneActivityProvider(id: string): Promise<ActivityProvider> {
-    return await this.activityProviderModel.findOne({ _id: id }).exec();
+    return this.activityProviderModel.findOne({ _id: id }).lean();
   }
 
   async getConfigurationInterfaceUrl(id: string): Promise<ConfigInterface> {
@@ -166,9 +165,9 @@ export class ActivitiesService {
       updateActivityProviderDto.url,
     );
 
-    return await this.activityProviderModel
+    return this.activityProviderModel
       .findByIdAndUpdate({ _id: id }, updateActivityProviderDto, { new: true })
-      .exec();
+      .lean();
   }
 
   async removeActivityProvider(id: string): Promise<void> {

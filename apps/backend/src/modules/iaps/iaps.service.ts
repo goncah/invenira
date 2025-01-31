@@ -24,7 +24,8 @@ export class IapsService {
   }
 
   async create(createIapDto: CreateIap): Promise<Iap> {
-    return this.iapModel.create(createIapDto);
+    const iap = await this.iapModel.create(createIapDto);
+    return iap.toObject();
   }
 
   async addActivity(
@@ -38,7 +39,7 @@ export class IapsService {
           $push: { activityIds: addActivityToIapDto.activityId },
         },
       )
-      .exec();
+      .lean();
   }
 
   async removeActivity(id: string, activityId: string): Promise<Iap> {
@@ -49,7 +50,7 @@ export class IapsService {
           $pull: { activityIds: activityId },
         },
       )
-      .exec();
+      .lean();
   }
 
   async deploy(id: string, baseUrl: string): Promise<Iap> {
@@ -78,7 +79,7 @@ export class IapsService {
           }, Promise.resolve())
           .then(async () => {
             iap.isDeployed = true;
-            return await this.update(id, iap);
+            return this.update(id, iap);
           })
           .then((r) => {
             session.commitTransaction();
@@ -93,11 +94,11 @@ export class IapsService {
   }
 
   async findAll(): Promise<Iap[]> {
-    return this.iapModel.find().exec();
+    return this.iapModel.find().lean();
   }
 
   async findOne(id: string): Promise<Iap> {
-    return this.iapModel.findOne({ _id: id }).exec();
+    return this.iapModel.findOne({ _id: id }).lean();
   }
 
   async findMetrics(id: string): Promise<string[]> {
@@ -169,11 +170,11 @@ export class IapsService {
         new: true,
         upsert: true,
       })
-      .exec();
+      .lean();
   }
 
   async remove(id: string): Promise<Iap> {
-    return this.iapModel.findByIdAndDelete({ _id: id }).exec();
+    return this.iapModel.findByIdAndDelete({ _id: id }).lean();
   }
 
   setupEvents(eventBus: EventBusService): void {
